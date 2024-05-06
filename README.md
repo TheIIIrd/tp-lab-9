@@ -1,6 +1,6 @@
 [![Build Status](https://app.travis-ci.com/Rigrey/lab04.svg?token=sSjKqXpxzeqqaxAwq5f2&branch=main)](https://app.travis-ci.com/Rigrey/lab04)
 
-# tp-lab05
+# tp-lab06
 
 Exploring frameworks for testing using GTest as an example.
 
@@ -17,8 +17,8 @@ source scripts/activate
 ```
 
 ```sh
-❯ git clone git@github.com:${GITHUB_USERNAME}/tp-lab04.git projects/lab05                   
-Cloning into 'projects/lab05'...
+❯ git clone git@github.com:${GITHUB_USERNAME}/tp-lab04.git projects/lab06                   
+Cloning into 'projects/lab06'...
 remote: Enumerating objects: 40, done.
 remote: Counting objects: 100% (40/40), done.
 remote: Compressing objects: 100% (28/28), done.
@@ -26,15 +26,15 @@ remote: Total 40 (delta 13), reused 30 (delta 8), pack-reused 0
 Receiving objects: 100% (40/40), 25.91 KiB | 576.00 KiB/s, done.
 Resolving deltas: 100% (13/13), done.
 
-❯ cd projects/lab05
+❯ cd projects/lab06
 ❯ git remote remove origin
-❯ git remote add origin git@github.com:${GITHUB_USERNAME}/tp-lab05.git
+❯ git remote add origin git@github.com:${GITHUB_USERNAME}/tp-lab06.git
 ```
 
 ```sh
 ❯ mkdir third-party                                                                                             
 ❯ git submodule add https://github.com/google/googletest.git third-party/gtest 
-Cloning into 'lab05/third-party/gtest'...
+Cloning into 'lab06/third-party/gtest'...
 remote: Enumerating objects: 27465, done.
 remote: Counting objects: 100% (10/10), done.
 remote: Compressing objects: 100% (8/8), done.
@@ -143,7 +143,7 @@ CMake Deprecation Warning at CMakeLists.txt:1 (cmake_minimum_required):
 -- Found Threads: TRUE
 -- Configuring done (1.3s)
 -- Generating done (0.0s)
--- Build files have been written to: lab05/_build
+-- Build files have been written to: lab06/_build
 ```
 
 ```sh
@@ -169,7 +169,7 @@ CMake Deprecation Warning at CMakeLists.txt:1 (cmake_minimum_required):
                                                                           took  8s
 ❯ cmake --build _build --target test 
 Running tests...
-Test project lab05/_build
+Test project lab06/_build
     Start 1: check
 1/1 Test #1: check ............................   Passed    0.00 sec
 
@@ -180,7 +180,7 @@ Total Test time (real) =   0.01 sec
 
 ```sh
 ❯ _build/check 
-Running main() from lab05/third-party/gtest/googletest/src/gtest_main.cc
+Running main() from lab06/third-party/gtest/googletest/src/gtest_main.cc
 [==========] Running 1 test from 1 test suite.
 [----------] Global test environment set-up.
 [----------] 1 test from Print
@@ -196,9 +196,9 @@ Running main() from lab05/third-party/gtest/googletest/src/gtest_main.cc
 ```sh
 ❯ cmake --build _build --target test -- ARGS=--verbose 
 Running tests...
-UpdateCTestConfiguration  from :lab05/_build/DartConfiguration.tcl
-UpdateCTestConfiguration  from :lab05/_build/DartConfiguration.tcl
-Test project lab05/_build
+UpdateCTestConfiguration  from :lab06/_build/DartConfiguration.tcl
+UpdateCTestConfiguration  from :lab06/_build/DartConfiguration.tcl
+Test project lab06/_build
 Constructing a list of tests
 Done constructing a list of tests
 Updating test list for fixtures
@@ -208,10 +208,10 @@ Checking test dependency graph end
 test 1
     Start 1: check
 
-1: Test command: lab05/_build/check
-1: Working Directory: lab05/_build
+1: Test command: lab06/_build/check
+1: Working Directory: lab06/_build
 1: Test timeout computed to be: 10000000
-1: Running main() from lab05/third-party/gtest/googletest/src/gtest_main.cc
+1: Running main() from lab06/third-party/gtest/googletest/src/gtest_main.cc
 1: [==========] Running 1 test from 1 test suite.
 1: [----------] Global test environment set-up.
 1: [----------] 1 test from Print
@@ -230,7 +230,7 @@ Total Test time (real) =   0.01 sec
 ```
 
 ```sh
-❯ sed -i 's/lab04/lab05/g' README.md
+❯ sed -i 's/lab04/lab06/g' README.md
 ❯ sed -i 's/\(DCMAKE_INSTALL_PREFIX=_install\)/\1 -DBUILD_TESTS=ON/' .travis.yml 
 ❯ sed -i '/cmake --build _build --target install/a\
 - cmake --build _build --target test -- ARGS=--verbose
@@ -297,10 +297,10 @@ index cd4fca8..8a1d2c9 100644
 +++ b/README.md
 @@ -1,6 +1,6 @@
 -[![Build Status](https://app.travis-ci.com/TheIIIrd/lab04.svg?token=gfdgdfgbgcddfdfcdff5&branch=main)](https://app.travis-ci.com/Rigrey/lab04)
-+[![Build Status](https://app.travis-ci.com/TheIIIrd/lab05.svg?token=gfdgdfgbgcddfdfcdff5&branch=main)](https://app.travis-ci.com/Rigrey/lab05)
++[![Build Status](https://app.travis-ci.com/TheIIIrd/lab06.svg?token=gfdgdfgbgcddfdfcdff5&branch=main)](https://app.travis-ci.com/Rigrey/lab06)
  
 -# tp-lab04
-+# tp-lab05
++# tp-lab06
  Study of continuous integration systems on the example of Travis CI service.
  
  ## Tutorial
@@ -311,8 +311,8 @@ index cd4fca8..8a1d2c9 100644
  ```sh
 -❯ git clone git@github.com:${GITHUB_USERNAME}/tp-lab03.git projects/lab04
 -Cloning into 'projects/lab04'...
-+❯ git clone git@github.com:${GITHUB_USERNAME}/tp-lab03.git projects/lab05
-+Cloning into 'projects/lab05'...
++❯ git clone git@github.com:${GITHUB_USERNAME}/tp-lab03.git projects/lab06
++Cloning into 'projects/lab06'...
  remote: Enumerating objects: 28, done.
  remote: Counting objects: 100% (28/28), done.
  remote: Compressing objects: 100% (18/18), done.
@@ -322,10 +322,10 @@ index cd4fca8..8a1d2c9 100644
  Resolving deltas: 100% (7/7), done.
  
 -❯ cd projects/lab04
-+❯ cd projects/lab05
++❯ cd projects/lab06
  ❯ git remote remove origin
 -❯ git remote add origin git@github.com:${GITHUB_USERNAME}/tp-lab04.git
-+❯ git remote add origin git@github.com:${GITHUB_USERNAME}/tp-lab05.git
++❯ git remote add origin git@github.com:${GITHUB_USERNAME}/tp-lab06.git
  ```
  
  ```sh
@@ -335,7 +335,7 @@ index cd4fca8..8a1d2c9 100644
  Total 3 (delta 1), reused 0 (delta 0), pack-reused 0 (from 0)
  remote: Resolving deltas: 100% (1/1), completed with 1 local object.
 -To github.com:TheIIIrd/tp-lab04.git
-+To github.com:TheIIIrd/tp-lab05.git
++To github.com:TheIIIrd/tp-lab06.git
     c7458b7..9320fc2  main -> main
 
 (4/4) Stage this hunk [y,n,q,a,d,K,g,/,e,p,?]? y
@@ -350,6 +350,6 @@ Compressing objects: 100% (26/26), done.
 Writing objects: 100% (44/44), 26.29 KiB | 26.29 MiB/s, done.
 Total 44 (delta 14), reused 39 (delta 13), pack-reused 0 (from 0)
 remote: Resolving deltas: 100% (14/14), done.
-To github.com:TheIIIrd/tp-lab05.git
+To github.com:TheIIIrd/tp-lab06.git
  * [new branch]      main -> main
 ```
