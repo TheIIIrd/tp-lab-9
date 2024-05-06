@@ -277,5 +277,5 @@ Total Installed Size:  0.09 MiB
 ❯ tree artifacts  
 artifacts
 └── print-0.1.0.0-Linux.tar.gz
-```
 1 directory, 1 file
+```
