@@ -1,13 +1,12 @@
 [![Build Status](https://app.travis-ci.com/Rigrey/lab04.svg?token=sSjKqXpxzeqqaxAwq5f2&branch=main)](https://app.travis-ci.com/Rigrey/lab04)
 
-# tp-lab07
-A study of package management systems using Hunter as an example.
+# tp-lab08
+Study of application deployment and management automation systems using Docker as an example.
 
 ## Tutorial
 
 ```sh
-❯ export GITHUB_USERNAME=TheIIIrd
-❯ alias gsed=sed
+export GITHUB_USERNAME=TheIIIrd
 ```
 
 ```sh
@@ -19,118 +18,1270 @@ A study of package management systems using Hunter as an example.
 ```
 
 ```sh
-❯ git clone git@github.com:${GITHUB_USERNAME}/tp-lab06.git projects/lab07
-Cloning into 'projects/lab07'...
-remote: Enumerating objects: 66, done.
-remote: Counting objects: 100% (66/66), done.
-remote: Compressing objects: 100% (42/42), done.
-remote: Total 66 (delta 24), reused 53 (delta 19), pack-reused 0
-Receiving objects: 100% (66/66), 37.73 KiB | 386.00 KiB/s, done.
-Resolving deltas: 100% (24/24), done.
-
-❯ cd projects/lab07
-❯ git remote remove origin
-❯ git remote add origin https://github.com/${GITHUB_USERNAME}/lab07
+❯ git clone git@github.com:${GITHUB_USERNAME}/tp-lab07.git projects/lab08 
+Cloning into 'projects/lab08'...
+remote: Enumerating objects: 93, done.
+remote: Counting objects: 100% (93/93), done.
+remote: Compressing objects: 100% (53/53), done.
+remote: Total 93 (delta 32), reused 86 (delta 29), pack-reused 0
+Receiving objects: 100% (93/93), 54.94 KiB | 611.00 KiB/s, done.
+Resolving deltas: 100% (32/32), done.
 ```
 
 ```sh
-❯ mkdir -p cmake
-❯ wget https://raw.githubusercontent.com/cpp-pm/gate/master/cmake/HunterGate.cmake -O cmake/HunterGate.cmake
---2024-05-10 09:03:09--  https://raw.githubusercontent.com/cpp-pm/gate/master/cmake/HunterGate.cmake
-Loaded CA certificate '/etc/ssl/certs/ca-certificates.crt'
-Resolving raw.githubusercontent.com (raw.githubusercontent.com)... 185.199.110.133, 185.199.109.133, 185.199.108.133, ...
-Connecting to raw.githubusercontent.com (raw.githubusercontent.com)|185.199.110.133|:443... connected.
-HTTP request sent, awaiting response... 200 OK
-Length: 17227 (17K) [text/plain]
-Saving to: ‘cmake/HunterGate.cmake’
+❯ cd lab08
+                                                                                           
+❯ git submodule update --init 
+Submodule 'tools/polly' (https://github.com/ruslo/polly) registered for path 'tools/polly'
+Cloning into 'Projects/TIMP/Workbench/lab08/tools/polly'...
+Submodule path 'tools/polly': checked out 'ef7e79c2c297d456f2742fd0b976f555d058d4e0'
 
-cmake/HunterGate.cmake              100%[================================================================>]  16.82K  --.-KB/s    in 0.002s  
-
-2024-05-10 09:03:10 (8.58 MB/s) - ‘cmake/HunterGate.cmake’ saved [17227/17227]
+❯ git remote remove origin                                                                                            
+❯ git remote add origin git@github.com:${GITHUB_USERNAME}/tp-lab08.git 
 ```
 
 ```sh
-❯ nvim CMakeLists.txt
-❯ git rm -rf third-party/gtest 
-rm 'third-party/gtest'
-```
-
-```sh
-❯ mkdir tests                                                                                 
-❯ cat > tests/test1.cpp <<EOF
-#include <print.hpp>
-
-#include <gtest/gtest.h>
-
-TEST(Print, InFileStream)
-{
-  std::string filepath = "file.txt";
-  std::string text = "hello";
-  std::ofstream out{filepath};
-
-  print(text, out);
-  out.close();
-
-  std::string result;
-  std::ifstream in{filepath};
-  in >> result;
-
-  EXPECT_EQ(result, text);
-}
+❯ cat > Dockerfile <<EOF
+FROM ubuntu:22.04
 EOF
 ```
 
 ```sh
-❯ cmake -H. -B_builds -DBUILD_TESTS=ON 
-CMake Deprecation Warning at CMakeLists.txt:1 (cmake_minimum_required):
-  Compatibility with CMake < 3.5 will be removed from a future version of
-  CMake.
+❯ cat >> Dockerfile <<EOF
 
-  Update the VERSION argument <min> value or use a ...<max> suffix to tell
-  CMake that the project does not need compatibility with older versions.
+RUN apt update
+RUN apt install -yy build-essential clang gcc make cmake
+EOF
+```
 
+```sh
+❯ cat >> Dockerfile <<EOF
 
--- The C compiler identification is GNU 14.1.1
--- The CXX compiler identification is GNU 14.1.1
+COPY . print/
+WORKDIR print
+EOF
+```
+
+```sh
+❯ cat >> Dockerfile <<EOF
+
+RUN cmake -H. -B_build -DCMAKE_BUILD_TYPE=Release -DCMAKE_INSTALL_PREFIX=_install
+RUN cmake --build _build
+RUN cmake --build _build --target install
+EOF
+```
+
+```sh
+❯ cat >> Dockerfile <<EOF
+
+ENV LOG_PATH /home/logs/log.txt
+EOF
+```
+
+```sh
+❯ cat >> Dockerfile <<EOF
+
+VOLUME /home/logs
+EOF
+```
+
+```sh
+❯ cat >> Dockerfile <<EOF
+
+WORKDIR _install/bin
+EOF
+```
+
+```sh
+❯ cat >> Dockerfile <<EOF
+
+ENTRYPOINT ./demo
+EOF
+```
+
+```sh
+❯ sudo pacman -S docker     
+[sudo] password for theiiird: 
+resolving dependencies...
+looking for conflicting packages...
+
+Packages (4) bridge-utils-1.7.1-2  containerd-1.7.16-1  runc-1.1.12-1  docker-1:26.1.2-1
+
+Total Download Size:    58.22 MiB
+Total Installed Size:  238.62 MiB
+
+:: Proceed with installation? [Y/n] 
+:: Retrieving packages...
+ docker-1:26.1.2-1-x86_64                                 28.8 MiB  99.9 MiB/s 00:02 [#################################################] 100%
+ containerd-1.7.16-1-x86_64                               26.4 MiB  99.9 MiB/s 00:01 [#################################################] 100%
+ runc-1.1.12-1-x86_64                                      3.0 MiB  99.9 MiB/s 00:01 [#################################################] 100%
+ bridge-utils-1.7.1-2-x86_64                              16.2 KiB  99.9 KiB/s 00:00 [#################################################] 100%
+ Total (4/4)                                              58.2 MiB  99.9 MiB/s 00:08 [#################################################] 100%
+(4/4) checking keys in keyring                                                       [#################################################] 100%
+(4/4) checking package integrity                                                     [#################################################] 100%
+(4/4) loading package files                                                          [#################################################] 100%
+(4/4) checking for file conflicts                                                    [#################################################] 100%
+(4/4) checking available disk space                                                  [#################################################] 100%
+:: Processing package changes...
+(1/4) installing bridge-utils                                                        [#################################################] 100%
+(2/4) installing runc                                                                [#################################################] 100%
+Optional dependencies for runc
+    criu: checkpoint support
+(3/4) installing containerd                                                          [#################################################] 100%
+(4/4) installing docker                                                              [#################################################] 100%
+Optional dependencies for docker
+    btrfs-progs: btrfs backend support [installed]
+    pigz: parallel gzip compressor support
+    docker-scan: vulnerability scanner
+    docker-buildx: extended build capabilities
+:: Running post-transaction hooks...
+(1/4) Creating system user accounts...
+Creating group 'docker' with GID 970.
+(2/4) Reloading system manager configuration...
+(3/4) Reloading device manager configuration...
+(4/4) Arming ConditionNeedsUpdate...
+```
+
+```sh
+❯ sudo systemctl enable docker.socket 
+Created symlink docker.socket → systemd/docker.socket.
+
+❯ systemctl status docker.socket 
+○ docker.socket - Docker Socket for the API
+     Loaded: loaded (systemd/docker.socket; enabled; 
+preset: disabled)
+     Active: inactive (dead)
+   Triggers: ● docker.service
+     Listen: /run/docker.sock (Stream)
+```
+
+```sh
+❯ sudo docker info 
+Client:
+ Version:    26.1.2
+ Context:    default
+ Debug Mode: false
+
+Server:
+ Containers: 0
+  Running: 0
+  Paused: 0
+  Stopped: 0
+ Images: 0
+ Server Version: 26.1.2
+```
+
+```sh
+❯ sudo docker build -t logger . 
+DEPRECATED: The legacy builder is deprecated and will be removed in a future release.
+            Install the buildx component to build images with BuildKit:
+            https://docs.docker.com/go/buildx/
+
+Sending build context to Docker daemon  4.313MB
+Step 1/12 : FROM ubuntu:22.04
+22.04: Pulling from library/ubuntu
+a8b1c5f80c2d: Pull complete 
+Digest: sha256:a6d2b38300ce017add71440577d5b0a90460d0e57fd7aec21dd0d1b0761bbfb2
+Status: Downloaded newer image for ubuntu:22.04
+ ---> 52882761a72a
+Step 2/12 : RUN apt update
+ ---> Running in ebb0881bf99d
+
+WARNING: apt does not have a stable CLI interface. Use with caution in scripts.
+
+Get:1 http://archive.ubuntu.com/ubuntu jammy InRelease [270 kB]
+Get:2 http://security.ubuntu.com/ubuntu jammy-security InRelease [110 kB]
+Get:3 http://security.ubuntu.com/ubuntu jammy-security/universe amd64 Packages [1082 kB]
+Get:4 http://archive.ubuntu.com/ubuntu jammy-updates InRelease [119 kB]
+Get:5 http://archive.ubuntu.com/ubuntu jammy-backports InRelease [109 kB]
+Get:6 http://archive.ubuntu.com/ubuntu jammy/multiverse amd64 Packages [266 kB]
+Get:7 http://archive.ubuntu.com/ubuntu jammy/main amd64 Packages [1792 kB]
+Get:8 http://security.ubuntu.com/ubuntu jammy-security/main amd64 Packages [1798 kB]
+Get:9 http://archive.ubuntu.com/ubuntu jammy/universe amd64 Packages [17.5 MB]
+Get:10 http://security.ubuntu.com/ubuntu jammy-security/restricted amd64 Packages [2308 kB]
+Get:11 http://security.ubuntu.com/ubuntu jammy-security/multiverse amd64 Packages [44.7 kB]
+Get:12 http://archive.ubuntu.com/ubuntu jammy/restricted amd64 Packages [164 kB]
+Get:13 http://archive.ubuntu.com/ubuntu jammy-updates/main amd64 Packages [2069 kB]
+Get:14 http://archive.ubuntu.com/ubuntu jammy-updates/universe amd64 Packages [1374 kB]
+Get:15 http://archive.ubuntu.com/ubuntu jammy-updates/restricted amd64 Packages [2382 kB]
+Get:16 http://archive.ubuntu.com/ubuntu jammy-updates/multiverse amd64 Packages [51.1 kB]
+Get:17 http://archive.ubuntu.com/ubuntu jammy-backports/main amd64 Packages [81.0 kB]
+Get:18 http://archive.ubuntu.com/ubuntu jammy-backports/universe amd64 Packages [31.9 kB]
+Fetched 31.5 MB in 5s (6510 kB/s)
+Reading package lists...
+Building dependency tree...
+Reading state information...
+All packages are up to date.
+ ---> Removed intermediate container ebb0881bf99d
+ ---> f6bea8fe27a4
+Step 3/12 : RUN apt install -yy build-essential clang gcc make cmake
+ ---> Running in 91e5ca3585ec
+
+WARNING: apt does not have a stable CLI interface. Use with caution in scripts.
+
+Reading package lists...
+Building dependency tree...
+Reading state information...
+The following additional packages will be installed:
+  binfmt-support binutils binutils-common binutils-x86-64-linux-gnu bzip2
+  ca-certificates clang-14 cmake-data cpp cpp-11 dh-elpa-helper dirmngr
+  dpkg-dev emacsen-common fakeroot fontconfig-config fonts-dejavu-core g++
+  g++-11 gcc-11 gcc-11-base gnupg gnupg-l10n gnupg-utils gpg gpg-agent
+  gpg-wks-client gpg-wks-server gpgconf gpgsm icu-devtools lib32gcc-s1
+  lib32stdc++6 libalgorithm-diff-perl libalgorithm-diff-xs-perl
+  libalgorithm-merge-perl libarchive13 libasan6 libassuan0 libatomic1
+  libbinutils libbrotli1 libbsd0 libc-dev-bin libc-devtools libc6-dev
+  libc6-i386 libcc1-0 libclang-common-14-dev libclang-cpp14 libclang1-14
+  libcrypt-dev libctf-nobfd0 libctf0 libcurl4 libdeflate0 libdpkg-perl
+  libedit2 libexpat1 libfakeroot libffi-dev libfile-fcntllock-perl
+  libfontconfig1 libfreetype6 libgc1 libgcc-11-dev libgd3 libgdbm-compat4
+  libgdbm6 libgomp1 libicu-dev libicu70 libisl23 libitm1 libjbig0
+  libjpeg-turbo8 libjpeg8 libjsoncpp25 libksba8 libldap-2.5-0 libldap-common
+  libllvm14 liblocale-gettext-perl liblsan0 libmd0 libmpc3 libmpdec3 libmpfr6
+  libncurses-dev libnghttp2-14 libnpth0 libnsl-dev libobjc-11-dev libobjc4
+  libperl5.34 libpfm4 libpipeline1 libpng16-16 libpsl5 libpython3-stdlib
+  libpython3.10-minimal libpython3.10-stdlib libquadmath0 libreadline8
+  librhash0 librtmp1 libsasl2-2 libsasl2-modules libsasl2-modules-db
+  libsqlite3-0 libssh-4 libstdc++-11-dev libtiff5 libtinfo-dev libtirpc-dev
+  libtsan0 libubsan1 libuv1 libwebp7 libx11-6 libx11-data libxau6 libxcb1
+  libxdmcp6 libxml2 libxml2-dev libxpm4 libyaml-0-2 libz3-4 libz3-dev
+  linux-libc-dev llvm-14 llvm-14-dev llvm-14-linker-tools llvm-14-runtime
+  llvm-14-tools lto-disabled-list manpages manpages-dev media-types netbase
+  openssl patch perl perl-modules-5.34 pinentry-curses publicsuffix python3
+  python3-minimal python3-pkg-resources python3-pygments python3-yaml
+  python3.10 python3.10-minimal readline-common rpcsvc-proto ucf xz-utils
+Suggested packages:
+  binutils-doc bzip2-doc clang-14-doc cmake-doc ninja-build cmake-format
+  cpp-doc gcc-11-locales dbus-user-session libpam-systemd pinentry-gnome3 tor
+  debian-keyring g++-multilib g++-11-multilib gcc-11-doc gcc-multilib autoconf
+  automake libtool flex bison gdb gcc-doc gcc-11-multilib parcimonie
+  xloadimage scdaemon lrzip glibc-doc git bzr libgd-tools gdbm-l10n icu-doc
+  ncurses-doc libsasl2-modules-gssapi-mit | libsasl2-modules-gssapi-heimdal
+  libsasl2-modules-ldap libsasl2-modules-otp libsasl2-modules-sql
+  libstdc++-11-doc pkg-config llvm-14-doc make-doc man-browser ed
+  diffutils-doc perl-doc libterm-readline-gnu-perl
+  | libterm-readline-perl-perl libtap-harness-archive-perl pinentry-doc
+  python3-doc python3-tk python3-venv python3-setuptools python-pygments-doc
+  ttf-bitstream-vera python3.10-venv python3.10-doc readline-doc
+The following NEW packages will be installed:
+  binfmt-support binutils binutils-common binutils-x86-64-linux-gnu
+  build-essential bzip2 ca-certificates clang clang-14 cmake cmake-data cpp
+  cpp-11 dh-elpa-helper dirmngr dpkg-dev emacsen-common fakeroot
+  fontconfig-config fonts-dejavu-core g++ g++-11 gcc gcc-11 gcc-11-base gnupg
+  gnupg-l10n gnupg-utils gpg gpg-agent gpg-wks-client gpg-wks-server gpgconf
+  gpgsm icu-devtools lib32gcc-s1 lib32stdc++6 libalgorithm-diff-perl
+  libalgorithm-diff-xs-perl libalgorithm-merge-perl libarchive13 libasan6
+  libassuan0 libatomic1 libbinutils libbrotli1 libbsd0 libc-dev-bin
+  libc-devtools libc6-dev libc6-i386 libcc1-0 libclang-common-14-dev
+  libclang-cpp14 libclang1-14 libcrypt-dev libctf-nobfd0 libctf0 libcurl4
+  libdeflate0 libdpkg-perl libedit2 libexpat1 libfakeroot libffi-dev
+  libfile-fcntllock-perl libfontconfig1 libfreetype6 libgc1 libgcc-11-dev
+  libgd3 libgdbm-compat4 libgdbm6 libgomp1 libicu-dev libicu70 libisl23
+  libitm1 libjbig0 libjpeg-turbo8 libjpeg8 libjsoncpp25 libksba8 libldap-2.5-0
+  libldap-common libllvm14 liblocale-gettext-perl liblsan0 libmd0 libmpc3
+  libmpdec3 libmpfr6 libncurses-dev libnghttp2-14 libnpth0 libnsl-dev
+  libobjc-11-dev libobjc4 libperl5.34 libpfm4 libpipeline1 libpng16-16 libpsl5
+  libpython3-stdlib libpython3.10-minimal libpython3.10-stdlib libquadmath0
+  libreadline8 librhash0 librtmp1 libsasl2-2 libsasl2-modules
+  libsasl2-modules-db libsqlite3-0 libssh-4 libstdc++-11-dev libtiff5
+  libtinfo-dev libtirpc-dev libtsan0 libubsan1 libuv1 libwebp7 libx11-6
+  libx11-data libxau6 libxcb1 libxdmcp6 libxml2 libxml2-dev libxpm4
+  libyaml-0-2 libz3-4 libz3-dev linux-libc-dev llvm-14 llvm-14-dev
+  llvm-14-linker-tools llvm-14-runtime llvm-14-tools lto-disabled-list make
+  manpages manpages-dev media-types netbase openssl patch perl
+  perl-modules-5.34 pinentry-curses publicsuffix python3 python3-minimal
+  python3-pkg-resources python3-pygments python3-yaml python3.10
+  python3.10-minimal readline-common rpcsvc-proto ucf xz-utils
+0 upgraded, 163 newly installed, 0 to remove and 0 not upgraded.
+Need to get 237 MB of archives.
+After this operation, 1095 MB of additional disk space will be used.
+Get:1 http://archive.ubuntu.com/ubuntu jammy/main amd64 liblocale-gettext-perl amd64 1.07-4build3 [17.1 kB]
+Get:2 http://archive.ubuntu.com/ubuntu jammy-updates/main amd64 libpython3.10-minimal amd64 3.10.12-1~22.04.3 [812 kB]
+Get:3 http://archive.ubuntu.com/ubuntu jammy-updates/main amd64 libexpat1 amd64 2.4.7-1ubuntu0.3 [91.0 kB]
+Get:4 http://archive.ubuntu.com/ubuntu jammy-updates/main amd64 python3.10-minimal amd64 3.10.12-1~22.04.3 [2242 kB]
+Get:5 http://archive.ubuntu.com/ubuntu jammy-updates/main amd64 python3-minimal amd64 3.10.6-1~22.04 [24.3 kB]
+Get:6 http://archive.ubuntu.com/ubuntu jammy/main amd64 media-types all 7.0.0 [25.5 kB]
+Get:7 http://archive.ubuntu.com/ubuntu jammy/main amd64 libmpdec3 amd64 2.5.1-2build2 [86.8 kB]
+Get:8 http://archive.ubuntu.com/ubuntu jammy/main amd64 readline-common all 8.1.2-1 [53.5 kB]
+Get:9 http://archive.ubuntu.com/ubuntu jammy/main amd64 libreadline8 amd64 8.1.2-1 [153 kB]
+Get:10 http://archive.ubuntu.com/ubuntu jammy-updates/main amd64 libsqlite3-0 amd64 3.37.2-2ubuntu0.3 [641 kB]
+Get:11 http://archive.ubuntu.com/ubuntu jammy-updates/main amd64 libpython3.10-stdlib amd64 3.10.12-1~22.04.3 [1848 kB]
+Get:12 http://archive.ubuntu.com/ubuntu jammy-updates/main amd64 python3.10 amd64 3.10.12-1~22.04.3 [508 kB]
+Get:13 http://archive.ubuntu.com/ubuntu jammy-updates/main amd64 libpython3-stdlib amd64 3.10.6-1~22.04 [6910 B]
+Get:14 http://archive.ubuntu.com/ubuntu jammy-updates/main amd64 python3 amd64 3.10.6-1~22.04 [22.8 kB]
+Get:15 http://archive.ubuntu.com/ubuntu jammy-updates/main amd64 perl-modules-5.34 all 5.34.0-3ubuntu1.3 [2976 kB]
+Get:16 http://archive.ubuntu.com/ubuntu jammy/main amd64 libgdbm6 amd64 1.23-1 [33.9 kB]
+Get:17 http://archive.ubuntu.com/ubuntu jammy/main amd64 libgdbm-compat4 amd64 1.23-1 [6606 B]
+Get:18 http://archive.ubuntu.com/ubuntu jammy-updates/main amd64 libperl5.34 amd64 5.34.0-3ubuntu1.3 [4820 kB]
+Get:19 http://archive.ubuntu.com/ubuntu jammy-updates/main amd64 perl amd64 5.34.0-3ubuntu1.3 [232 kB]
+Get:20 http://archive.ubuntu.com/ubuntu jammy-updates/main amd64 openssl amd64 3.0.2-0ubuntu1.15 [1186 kB]
+Get:21 http://archive.ubuntu.com/ubuntu jammy-updates/main amd64 ca-certificates all 20230311ubuntu0.22.04.1 [155 kB]
+Get:22 http://archive.ubuntu.com/ubuntu jammy/main amd64 libmd0 amd64 1.0.4-1build1 [23.0 kB]
+Get:23 http://archive.ubuntu.com/ubuntu jammy/main amd64 libbsd0 amd64 0.11.5-1 [44.8 kB]
+Get:24 http://archive.ubuntu.com/ubuntu jammy/main amd64 libicu70 amd64 70.1-2 [10.6 MB]
+Get:25 http://archive.ubuntu.com/ubuntu jammy-updates/main amd64 libxml2 amd64 2.9.13+dfsg-1ubuntu0.4 [763 kB]
+Get:26 http://archive.ubuntu.com/ubuntu jammy/main amd64 libyaml-0-2 amd64 0.2.2-1build2 [51.6 kB]
+Get:27 http://archive.ubuntu.com/ubuntu jammy/main amd64 netbase all 6.3 [12.9 kB]
+Get:28 http://archive.ubuntu.com/ubuntu jammy-updates/main amd64 python3-pkg-resources all 59.6.0-1.2ubuntu0.22.04.1 [132 kB]
+Get:29 http://archive.ubuntu.com/ubuntu jammy/main amd64 python3-yaml amd64 5.4.1-1ubuntu1 [129 kB]
+Get:30 http://archive.ubuntu.com/ubuntu jammy/main amd64 ucf all 3.0043 [56.1 kB]
+Get:31 http://archive.ubuntu.com/ubuntu jammy/main amd64 libedit2 amd64 3.1-20210910-1build1 [96.8 kB]
+Get:32 http://archive.ubuntu.com/ubuntu jammy-updates/main amd64 libnghttp2-14 amd64 1.43.0-1ubuntu0.2 [76.9 kB]
+Get:33 http://archive.ubuntu.com/ubuntu jammy/main amd64 libpipeline1 amd64 1.5.5-1 [23.5 kB]
+Get:34 http://archive.ubuntu.com/ubuntu jammy/main amd64 libpng16-16 amd64 1.6.37-3build5 [191 kB]
+Get:35 http://archive.ubuntu.com/ubuntu jammy/main amd64 libpsl5 amd64 0.21.0-1.2build2 [58.4 kB]
+Get:36 http://archive.ubuntu.com/ubuntu jammy-updates/main amd64 libuv1 amd64 1.43.0-1ubuntu0.1 [92.7 kB]
+Get:37 http://archive.ubuntu.com/ubuntu jammy/main amd64 libxau6 amd64 1:1.0.9-1build5 [7634 B]
+Get:38 http://archive.ubuntu.com/ubuntu jammy/main amd64 libxdmcp6 amd64 1:1.1.3-0ubuntu5 [10.9 kB]
+Get:39 http://archive.ubuntu.com/ubuntu jammy/main amd64 libxcb1 amd64 1.14-3ubuntu3 [49.0 kB]
+Get:40 http://archive.ubuntu.com/ubuntu jammy-updates/main amd64 libx11-data all 2:1.7.5-1ubuntu0.3 [120 kB]
+Get:41 http://archive.ubuntu.com/ubuntu jammy-updates/main amd64 libx11-6 amd64 2:1.7.5-1ubuntu0.3 [667 kB]
+Get:42 http://archive.ubuntu.com/ubuntu jammy/main amd64 manpages all 5.10-1ubuntu1 [1375 kB]
+Get:43 http://archive.ubuntu.com/ubuntu jammy/main amd64 publicsuffix all 20211207.1025-1 [129 kB]
+Get:44 http://archive.ubuntu.com/ubuntu jammy/main amd64 xz-utils amd64 5.2.5-2ubuntu1 [84.8 kB]
+Get:45 http://archive.ubuntu.com/ubuntu jammy/main amd64 binfmt-support amd64 2.2.1-2 [55.8 kB]
+Get:46 http://archive.ubuntu.com/ubuntu jammy-updates/main amd64 binutils-common amd64 2.38-4ubuntu2.6 [222 kB]
+Get:47 http://archive.ubuntu.com/ubuntu jammy-updates/main amd64 libbinutils amd64 2.38-4ubuntu2.6 [662 kB]
+Get:48 http://archive.ubuntu.com/ubuntu jammy-updates/main amd64 libctf-nobfd0 amd64 2.38-4ubuntu2.6 [108 kB]
+Get:49 http://archive.ubuntu.com/ubuntu jammy-updates/main amd64 libctf0 amd64 2.38-4ubuntu2.6 [103 kB]
+Get:50 http://archive.ubuntu.com/ubuntu jammy-updates/main amd64 binutils-x86-64-linux-gnu amd64 2.38-4ubuntu2.6 [2326 kB]
+Get:51 http://archive.ubuntu.com/ubuntu jammy-updates/main amd64 binutils amd64 2.38-4ubuntu2.6 [3200 B]
+Get:52 http://archive.ubuntu.com/ubuntu jammy-updates/main amd64 libc-dev-bin amd64 2.35-0ubuntu3.7 [20.3 kB]
+Get:53 http://archive.ubuntu.com/ubuntu jammy-updates/main amd64 linux-libc-dev amd64 5.15.0-106.116 [1341 kB]
+Get:54 http://archive.ubuntu.com/ubuntu jammy/main amd64 libcrypt-dev amd64 1:4.4.27-1 [112 kB]
+Get:55 http://archive.ubuntu.com/ubuntu jammy/main amd64 rpcsvc-proto amd64 1.4.2-0ubuntu6 [68.5 kB]
+Get:56 http://archive.ubuntu.com/ubuntu jammy-updates/main amd64 libtirpc-dev amd64 1.3.2-2ubuntu0.1 [192 kB]
+Get:57 http://archive.ubuntu.com/ubuntu jammy/main amd64 libnsl-dev amd64 1.3.0-2build2 [71.3 kB]
+Get:58 http://archive.ubuntu.com/ubuntu jammy-updates/main amd64 libc6-dev amd64 2.35-0ubuntu3.7 [2100 kB]
+Get:59 http://archive.ubuntu.com/ubuntu jammy-updates/main amd64 gcc-11-base amd64 11.4.0-1ubuntu1~22.04 [20.2 kB]
+Get:60 http://archive.ubuntu.com/ubuntu jammy/main amd64 libisl23 amd64 0.24-2build1 [727 kB]
+Get:61 http://archive.ubuntu.com/ubuntu jammy/main amd64 libmpfr6 amd64 4.1.0-3build3 [1425 kB]
+Get:62 http://archive.ubuntu.com/ubuntu jammy/main amd64 libmpc3 amd64 1.2.1-2build1 [46.9 kB]
+Get:63 http://archive.ubuntu.com/ubuntu jammy-updates/main amd64 cpp-11 amd64 11.4.0-1ubuntu1~22.04 [10.0 MB]
+Get:64 http://archive.ubuntu.com/ubuntu jammy/main amd64 cpp amd64 4:11.2.0-1ubuntu1 [27.7 kB]
+Get:65 http://archive.ubuntu.com/ubuntu jammy-updates/main amd64 libcc1-0 amd64 12.3.0-1ubuntu1~22.04 [48.3 kB]
+Get:66 http://archive.ubuntu.com/ubuntu jammy-updates/main amd64 libgomp1 amd64 12.3.0-1ubuntu1~22.04 [126 kB]
+Get:67 http://archive.ubuntu.com/ubuntu jammy-updates/main amd64 libitm1 amd64 12.3.0-1ubuntu1~22.04 [30.2 kB]
+Get:68 http://archive.ubuntu.com/ubuntu jammy-updates/main amd64 libatomic1 amd64 12.3.0-1ubuntu1~22.04 [10.4 kB]
+Get:69 http://archive.ubuntu.com/ubuntu jammy-updates/main amd64 libasan6 amd64 11.4.0-1ubuntu1~22.04 [2282 kB]
+Get:70 http://archive.ubuntu.com/ubuntu jammy-updates/main amd64 liblsan0 amd64 12.3.0-1ubuntu1~22.04 [1069 kB]
+Get:71 http://archive.ubuntu.com/ubuntu jammy-updates/main amd64 libtsan0 amd64 11.4.0-1ubuntu1~22.04 [2260 kB]
+Get:72 http://archive.ubuntu.com/ubuntu jammy-updates/main amd64 libubsan1 amd64 12.3.0-1ubuntu1~22.04 [976 kB]
+Get:73 http://archive.ubuntu.com/ubuntu jammy-updates/main amd64 libquadmath0 amd64 12.3.0-1ubuntu1~22.04 [154 kB]
+Get:74 http://archive.ubuntu.com/ubuntu jammy-updates/main amd64 libgcc-11-dev amd64 11.4.0-1ubuntu1~22.04 [2517 kB]
+Get:75 http://archive.ubuntu.com/ubuntu jammy-updates/main amd64 gcc-11 amd64 11.4.0-1ubuntu1~22.04 [20.1 MB]
+Get:76 http://archive.ubuntu.com/ubuntu jammy/main amd64 gcc amd64 4:11.2.0-1ubuntu1 [5112 B]
+Get:77 http://archive.ubuntu.com/ubuntu jammy-updates/main amd64 libstdc++-11-dev amd64 11.4.0-1ubuntu1~22.04 [2101 kB]
+Get:78 http://archive.ubuntu.com/ubuntu jammy-updates/main amd64 g++-11 amd64 11.4.0-1ubuntu1~22.04 [11.4 MB]
+Get:79 http://archive.ubuntu.com/ubuntu jammy/main amd64 g++ amd64 4:11.2.0-1ubuntu1 [1412 B]
+Get:80 http://archive.ubuntu.com/ubuntu jammy/main amd64 make amd64 4.3-4.1build1 [180 kB]
+Get:81 http://archive.ubuntu.com/ubuntu jammy-updates/main amd64 libdpkg-perl all 1.21.1ubuntu2.3 [237 kB]
+Get:82 http://archive.ubuntu.com/ubuntu jammy/main amd64 bzip2 amd64 1.0.8-5build1 [34.8 kB]
+Get:83 http://archive.ubuntu.com/ubuntu jammy/main amd64 patch amd64 2.7.6-7build2 [109 kB]
+Get:84 http://archive.ubuntu.com/ubuntu jammy/main amd64 lto-disabled-list all 24 [12.5 kB]
+Get:85 http://archive.ubuntu.com/ubuntu jammy-updates/main amd64 dpkg-dev all 1.21.1ubuntu2.3 [922 kB]
+Get:86 http://archive.ubuntu.com/ubuntu jammy/main amd64 build-essential amd64 12.9ubuntu3 [4744 B]
+Get:87 http://archive.ubuntu.com/ubuntu jammy-updates/main amd64 libllvm14 amd64 1:14.0.0-1ubuntu1.1 [24.0 MB]
+Get:88 http://archive.ubuntu.com/ubuntu jammy-updates/universe amd64 libclang-cpp14 amd64 1:14.0.0-1ubuntu1.1 [12.1 MB]
+Get:89 http://archive.ubuntu.com/ubuntu jammy/main amd64 libgc1 amd64 1:8.0.6-1.1build1 [96.8 kB]
+Get:90 http://archive.ubuntu.com/ubuntu jammy-updates/universe amd64 libobjc4 amd64 12.3.0-1ubuntu1~22.04 [48.6 kB]
+Get:91 http://archive.ubuntu.com/ubuntu jammy-updates/universe amd64 libobjc-11-dev amd64 11.4.0-1ubuntu1~22.04 [196 kB]
+Get:92 http://archive.ubuntu.com/ubuntu jammy-updates/main amd64 libc6-i386 amd64 2.35-0ubuntu3.7 [2838 kB]
+Get:93 http://archive.ubuntu.com/ubuntu jammy-updates/main amd64 lib32gcc-s1 amd64 12.3.0-1ubuntu1~22.04 [63.9 kB]
+Get:94 http://archive.ubuntu.com/ubuntu jammy-updates/main amd64 lib32stdc++6 amd64 12.3.0-1ubuntu1~22.04 [740 kB]
+Get:95 http://archive.ubuntu.com/ubuntu jammy-updates/universe amd64 libclang-common-14-dev amd64 1:14.0.0-1ubuntu1.1 [5975 kB]
+Get:96 http://archive.ubuntu.com/ubuntu jammy-updates/universe amd64 llvm-14-linker-tools amd64 1:14.0.0-1ubuntu1.1 [1355 kB]
+Get:97 http://archive.ubuntu.com/ubuntu jammy-updates/universe amd64 libclang1-14 amd64 1:14.0.0-1ubuntu1.1 [6792 kB]
+Get:98 http://archive.ubuntu.com/ubuntu jammy-updates/universe amd64 clang-14 amd64 1:14.0.0-1ubuntu1.1 [81.2 kB]
+Get:99 http://archive.ubuntu.com/ubuntu jammy/universe amd64 clang amd64 1:14.0-55~exp2 [3558 B]
+Get:100 http://archive.ubuntu.com/ubuntu jammy/main amd64 libarchive13 amd64 3.6.0-1ubuntu1 [368 kB]
+Get:101 http://archive.ubuntu.com/ubuntu jammy/main amd64 libbrotli1 amd64 1.0.9-2build6 [315 kB]
+Get:102 http://archive.ubuntu.com/ubuntu jammy-updates/main amd64 libsasl2-modules-db amd64 2.1.27+dfsg2-3ubuntu1.2 [20.5 kB]
+Get:103 http://archive.ubuntu.com/ubuntu jammy-updates/main amd64 libsasl2-2 amd64 2.1.27+dfsg2-3ubuntu1.2 [53.8 kB]
+Get:104 http://archive.ubuntu.com/ubuntu jammy-updates/main amd64 libldap-2.5-0 amd64 2.5.17+dfsg-0ubuntu0.22.04.1 [183 kB]
+Get:105 http://archive.ubuntu.com/ubuntu jammy/main amd64 librtmp1 amd64 2.4+20151223.gitfa8646d.1-2build4 [58.2 kB]
+Get:106 http://archive.ubuntu.com/ubuntu jammy-updates/main amd64 libssh-4 amd64 0.9.6-2ubuntu0.22.04.3 [186 kB]
+Get:107 http://archive.ubuntu.com/ubuntu jammy-updates/main amd64 libcurl4 amd64 7.81.0-1ubuntu1.16 [290 kB]
+Get:108 http://archive.ubuntu.com/ubuntu jammy/main amd64 libjsoncpp25 amd64 1.9.5-3 [80.0 kB]
+Get:109 http://archive.ubuntu.com/ubuntu jammy/main amd64 librhash0 amd64 1.4.2-1ubuntu1 [125 kB]
+Get:110 http://archive.ubuntu.com/ubuntu jammy/main amd64 dh-elpa-helper all 2.0.9ubuntu1 [7610 B]
+Get:111 http://archive.ubuntu.com/ubuntu jammy/main amd64 emacsen-common all 3.0.4 [14.9 kB]
+Get:112 http://archive.ubuntu.com/ubuntu jammy-updates/main amd64 cmake-data all 3.22.1-1ubuntu1.22.04.2 [1913 kB]
+Get:113 http://archive.ubuntu.com/ubuntu jammy-updates/main amd64 cmake amd64 3.22.1-1ubuntu1.22.04.2 [5010 kB]
+Get:114 http://archive.ubuntu.com/ubuntu jammy/main amd64 libassuan0 amd64 2.5.5-1build1 [38.2 kB]
+Get:115 http://archive.ubuntu.com/ubuntu jammy-updates/main amd64 gpgconf amd64 2.2.27-3ubuntu2.1 [94.2 kB]
+Get:116 http://archive.ubuntu.com/ubuntu jammy-updates/main amd64 libksba8 amd64 1.6.0-2ubuntu0.2 [119 kB]
+Get:117 http://archive.ubuntu.com/ubuntu jammy/main amd64 libnpth0 amd64 1.6-3build2 [8664 B]
+Get:118 http://archive.ubuntu.com/ubuntu jammy-updates/main amd64 dirmngr amd64 2.2.27-3ubuntu2.1 [293 kB]
+Get:119 http://archive.ubuntu.com/ubuntu jammy/main amd64 libfakeroot amd64 1.28-1ubuntu1 [31.5 kB]
+Get:120 http://archive.ubuntu.com/ubuntu jammy/main amd64 fakeroot amd64 1.28-1ubuntu1 [60.4 kB]
+Get:121 http://archive.ubuntu.com/ubuntu jammy/main amd64 fonts-dejavu-core all 2.37-2build1 [1041 kB]
+Get:122 http://archive.ubuntu.com/ubuntu jammy/main amd64 fontconfig-config all 2.13.1-4.2ubuntu5 [29.1 kB]
+Get:123 http://archive.ubuntu.com/ubuntu jammy-updates/main amd64 gnupg-l10n all 2.2.27-3ubuntu2.1 [54.4 kB]
+Get:124 http://archive.ubuntu.com/ubuntu jammy-updates/main amd64 gnupg-utils amd64 2.2.27-3ubuntu2.1 [308 kB]
+Get:125 http://archive.ubuntu.com/ubuntu jammy-updates/main amd64 gpg amd64 2.2.27-3ubuntu2.1 [519 kB]
+Get:126 http://archive.ubuntu.com/ubuntu jammy/main amd64 pinentry-curses amd64 1.1.1-1build2 [34.4 kB]
+Get:127 http://archive.ubuntu.com/ubuntu jammy-updates/main amd64 gpg-agent amd64 2.2.27-3ubuntu2.1 [209 kB]
+Get:128 http://archive.ubuntu.com/ubuntu jammy-updates/main amd64 gpg-wks-client amd64 2.2.27-3ubuntu2.1 [62.7 kB]
+Get:129 http://archive.ubuntu.com/ubuntu jammy-updates/main amd64 gpg-wks-server amd64 2.2.27-3ubuntu2.1 [57.5 kB]
+Get:130 http://archive.ubuntu.com/ubuntu jammy-updates/main amd64 gpgsm amd64 2.2.27-3ubuntu2.1 [197 kB]
+Get:131 http://archive.ubuntu.com/ubuntu jammy-updates/main amd64 gnupg all 2.2.27-3ubuntu2.1 [315 kB]
+Get:132 http://archive.ubuntu.com/ubuntu jammy/main amd64 icu-devtools amd64 70.1-2 [197 kB]
+Get:133 http://archive.ubuntu.com/ubuntu jammy/main amd64 libalgorithm-diff-perl all 1.201-1 [41.8 kB]
+Get:134 http://archive.ubuntu.com/ubuntu jammy/main amd64 libalgorithm-diff-xs-perl amd64 0.04-6build3 [11.9 kB]
+Get:135 http://archive.ubuntu.com/ubuntu jammy/main amd64 libalgorithm-merge-perl all 0.08-3 [12.0 kB]
+Get:136 http://archive.ubuntu.com/ubuntu jammy-updates/main amd64 libfreetype6 amd64 2.11.1+dfsg-1ubuntu0.2 [389 kB]
+Get:137 http://archive.ubuntu.com/ubuntu jammy/main amd64 libfontconfig1 amd64 2.13.1-4.2ubuntu5 [131 kB]
+Get:138 http://archive.ubuntu.com/ubuntu jammy/main amd64 libjpeg-turbo8 amd64 2.1.2-0ubuntu1 [134 kB]
+Get:139 http://archive.ubuntu.com/ubuntu jammy/main amd64 libjpeg8 amd64 8c-2ubuntu10 [2264 B]
+Get:140 http://archive.ubuntu.com/ubuntu jammy/main amd64 libdeflate0 amd64 1.10-2 [70.9 kB]
+Get:141 http://archive.ubuntu.com/ubuntu jammy-updates/main amd64 libjbig0 amd64 2.1-3.1ubuntu0.22.04.1 [29.2 kB]
+Get:142 http://archive.ubuntu.com/ubuntu jammy-updates/main amd64 libwebp7 amd64 1.2.2-2ubuntu0.22.04.2 [206 kB]
+Get:143 http://archive.ubuntu.com/ubuntu jammy-updates/main amd64 libtiff5 amd64 4.3.0-6ubuntu0.8 [185 kB]
+Get:144 http://archive.ubuntu.com/ubuntu jammy-updates/main amd64 libxpm4 amd64 1:3.5.12-1ubuntu0.22.04.2 [36.7 kB]
+Get:145 http://archive.ubuntu.com/ubuntu jammy/main amd64 libgd3 amd64 2.3.0-2ubuntu2 [129 kB]
+Get:146 http://archive.ubuntu.com/ubuntu jammy-updates/main amd64 libc-devtools amd64 2.35-0ubuntu3.7 [29.0 kB]
+Get:147 http://archive.ubuntu.com/ubuntu jammy/main amd64 libfile-fcntllock-perl amd64 0.22-3build7 [33.9 kB]
+Get:148 http://archive.ubuntu.com/ubuntu jammy/main amd64 libicu-dev amd64 70.1-2 [11.6 MB]
+Get:149 http://archive.ubuntu.com/ubuntu jammy-updates/main amd64 libldap-common all 2.5.17+dfsg-0ubuntu0.22.04.1 [15.8 kB]
+Get:150 http://archive.ubuntu.com/ubuntu jammy-updates/main amd64 libncurses-dev amd64 6.3-2ubuntu0.1 [381 kB]
+Get:151 http://archive.ubuntu.com/ubuntu jammy-updates/main amd64 libsasl2-modules amd64 2.1.27+dfsg2-3ubuntu1.2 [68.8 kB]
+Get:152 http://archive.ubuntu.com/ubuntu jammy-updates/main amd64 libtinfo-dev amd64 6.3-2ubuntu0.1 [780 B]
+Get:153 http://archive.ubuntu.com/ubuntu jammy-updates/main amd64 libxml2-dev amd64 2.9.13+dfsg-1ubuntu0.4 [804 kB]
+Get:154 http://archive.ubuntu.com/ubuntu jammy-updates/universe amd64 llvm-14-runtime amd64 1:14.0.0-1ubuntu1.1 [484 kB]
+Get:155 http://archive.ubuntu.com/ubuntu jammy-updates/main amd64 libpfm4 amd64 4.11.1+git32-gd0b85fb-1ubuntu0.1 [345 kB]
+Get:156 http://archive.ubuntu.com/ubuntu jammy-updates/universe amd64 llvm-14 amd64 1:14.0.0-1ubuntu1.1 [12.7 MB]
+Get:157 http://archive.ubuntu.com/ubuntu jammy/main amd64 libffi-dev amd64 3.4.2-4 [63.7 kB]
+Get:158 http://archive.ubuntu.com/ubuntu jammy/main amd64 python3-pygments all 2.11.2+dfsg-2 [750 kB]
+Get:159 http://archive.ubuntu.com/ubuntu jammy-updates/universe amd64 llvm-14-tools amd64 1:14.0.0-1ubuntu1.1 [404 kB]
+Get:160 http://archive.ubuntu.com/ubuntu jammy/universe amd64 libz3-4 amd64 4.8.12-1 [5766 kB]
+Get:161 http://archive.ubuntu.com/ubuntu jammy/universe amd64 libz3-dev amd64 4.8.12-1 [72.2 kB]
+Get:162 http://archive.ubuntu.com/ubuntu jammy-updates/universe amd64 llvm-14-dev amd64 1:14.0.0-1ubuntu1.1 [37.8 MB]
+Get:163 http://archive.ubuntu.com/ubuntu jammy/main amd64 manpages-dev all 5.10-1ubuntu1 [2309 kB]
+debconf: delaying package configuration, since apt-utils is not installed
+Fetched 237 MB in 39s (5993 kB/s)
+Selecting previously unselected package liblocale-gettext-perl.
+(Reading database ... 4393 files and directories currently installed.)
+Preparing to unpack .../liblocale-gettext-perl_1.07-4build3_amd64.deb ...
+Unpacking liblocale-gettext-perl (1.07-4build3) ...
+Selecting previously unselected package libpython3.10-minimal:amd64.
+Preparing to unpack .../libpython3.10-minimal_3.10.12-1~22.04.3_amd64.deb ...
+Unpacking libpython3.10-minimal:amd64 (3.10.12-1~22.04.3) ...
+Selecting previously unselected package libexpat1:amd64.
+Preparing to unpack .../libexpat1_2.4.7-1ubuntu0.3_amd64.deb ...
+Unpacking libexpat1:amd64 (2.4.7-1ubuntu0.3) ...
+Selecting previously unselected package python3.10-minimal.
+Preparing to unpack .../python3.10-minimal_3.10.12-1~22.04.3_amd64.deb ...
+Unpacking python3.10-minimal (3.10.12-1~22.04.3) ...
+Setting up libpython3.10-minimal:amd64 (3.10.12-1~22.04.3) ...
+Setting up libexpat1:amd64 (2.4.7-1ubuntu0.3) ...
+Setting up python3.10-minimal (3.10.12-1~22.04.3) ...
+Selecting previously unselected package python3-minimal.
+(Reading database ... 4711 files and directories currently installed.)
+Preparing to unpack .../0-python3-minimal_3.10.6-1~22.04_amd64.deb ...
+Unpacking python3-minimal (3.10.6-1~22.04) ...
+Selecting previously unselected package media-types.
+Preparing to unpack .../1-media-types_7.0.0_all.deb ...
+Unpacking media-types (7.0.0) ...
+Selecting previously unselected package libmpdec3:amd64.
+Preparing to unpack .../2-libmpdec3_2.5.1-2build2_amd64.deb ...
+Unpacking libmpdec3:amd64 (2.5.1-2build2) ...
+Selecting previously unselected package readline-common.
+Preparing to unpack .../3-readline-common_8.1.2-1_all.deb ...
+Unpacking readline-common (8.1.2-1) ...
+Selecting previously unselected package libreadline8:amd64.
+Preparing to unpack .../4-libreadline8_8.1.2-1_amd64.deb ...
+Unpacking libreadline8:amd64 (8.1.2-1) ...
+Selecting previously unselected package libsqlite3-0:amd64.
+Preparing to unpack .../5-libsqlite3-0_3.37.2-2ubuntu0.3_amd64.deb ...
+Unpacking libsqlite3-0:amd64 (3.37.2-2ubuntu0.3) ...
+Selecting previously unselected package libpython3.10-stdlib:amd64.
+Preparing to unpack .../6-libpython3.10-stdlib_3.10.12-1~22.04.3_amd64.deb ...
+Unpacking libpython3.10-stdlib:amd64 (3.10.12-1~22.04.3) ...
+Selecting previously unselected package python3.10.
+Preparing to unpack .../7-python3.10_3.10.12-1~22.04.3_amd64.deb ...
+Unpacking python3.10 (3.10.12-1~22.04.3) ...
+Selecting previously unselected package libpython3-stdlib:amd64.
+Preparing to unpack .../8-libpython3-stdlib_3.10.6-1~22.04_amd64.deb ...
+Unpacking libpython3-stdlib:amd64 (3.10.6-1~22.04) ...
+Setting up python3-minimal (3.10.6-1~22.04) ...
+Selecting previously unselected package python3.
+(Reading database ... 5141 files and directories currently installed.)
+Preparing to unpack .../000-python3_3.10.6-1~22.04_amd64.deb ...
+Unpacking python3 (3.10.6-1~22.04) ...
+Selecting previously unselected package perl-modules-5.34.
+Preparing to unpack .../001-perl-modules-5.34_5.34.0-3ubuntu1.3_all.deb ...
+Unpacking perl-modules-5.34 (5.34.0-3ubuntu1.3) ...
+Selecting previously unselected package libgdbm6:amd64.
+Preparing to unpack .../002-libgdbm6_1.23-1_amd64.deb ...
+Unpacking libgdbm6:amd64 (1.23-1) ...
+Selecting previously unselected package libgdbm-compat4:amd64.
+Preparing to unpack .../003-libgdbm-compat4_1.23-1_amd64.deb ...
+Unpacking libgdbm-compat4:amd64 (1.23-1) ...
+Selecting previously unselected package libperl5.34:amd64.
+Preparing to unpack .../004-libperl5.34_5.34.0-3ubuntu1.3_amd64.deb ...
+Unpacking libperl5.34:amd64 (5.34.0-3ubuntu1.3) ...
+Selecting previously unselected package perl.
+Preparing to unpack .../005-perl_5.34.0-3ubuntu1.3_amd64.deb ...
+Unpacking perl (5.34.0-3ubuntu1.3) ...
+Selecting previously unselected package openssl.
+Preparing to unpack .../006-openssl_3.0.2-0ubuntu1.15_amd64.deb ...
+Unpacking openssl (3.0.2-0ubuntu1.15) ...
+Selecting previously unselected package ca-certificates.
+Preparing to unpack .../007-ca-certificates_20230311ubuntu0.22.04.1_all.deb ...
+Unpacking ca-certificates (20230311ubuntu0.22.04.1) ...
+Selecting previously unselected package libmd0:amd64.
+Preparing to unpack .../008-libmd0_1.0.4-1build1_amd64.deb ...
+Unpacking libmd0:amd64 (1.0.4-1build1) ...
+Selecting previously unselected package libbsd0:amd64.
+Preparing to unpack .../009-libbsd0_0.11.5-1_amd64.deb ...
+Unpacking libbsd0:amd64 (0.11.5-1) ...
+Selecting previously unselected package libicu70:amd64.
+Preparing to unpack .../010-libicu70_70.1-2_amd64.deb ...
+Unpacking libicu70:amd64 (70.1-2) ...
+Selecting previously unselected package libxml2:amd64.
+Preparing to unpack .../011-libxml2_2.9.13+dfsg-1ubuntu0.4_amd64.deb ...
+Unpacking libxml2:amd64 (2.9.13+dfsg-1ubuntu0.4) ...
+Selecting previously unselected package libyaml-0-2:amd64.
+Preparing to unpack .../012-libyaml-0-2_0.2.2-1build2_amd64.deb ...
+Unpacking libyaml-0-2:amd64 (0.2.2-1build2) ...
+Selecting previously unselected package netbase.
+Preparing to unpack .../013-netbase_6.3_all.deb ...
+Unpacking netbase (6.3) ...
+Selecting previously unselected package python3-pkg-resources.
+Preparing to unpack .../014-python3-pkg-resources_59.6.0-1.2ubuntu0.22.04.1_all.deb ...
+Unpacking python3-pkg-resources (59.6.0-1.2ubuntu0.22.04.1) ...
+Selecting previously unselected package python3-yaml.
+Preparing to unpack .../015-python3-yaml_5.4.1-1ubuntu1_amd64.deb ...
+Unpacking python3-yaml (5.4.1-1ubuntu1) ...
+Selecting previously unselected package ucf.
+Preparing to unpack .../016-ucf_3.0043_all.deb ...
+Moving old data out of the way
+Unpacking ucf (3.0043) ...
+Selecting previously unselected package libedit2:amd64.
+Preparing to unpack .../017-libedit2_3.1-20210910-1build1_amd64.deb ...
+Unpacking libedit2:amd64 (3.1-20210910-1build1) ...
+Selecting previously unselected package libnghttp2-14:amd64.
+Preparing to unpack .../018-libnghttp2-14_1.43.0-1ubuntu0.2_amd64.deb ...
+Unpacking libnghttp2-14:amd64 (1.43.0-1ubuntu0.2) ...
+Selecting previously unselected package libpipeline1:amd64.
+Preparing to unpack .../019-libpipeline1_1.5.5-1_amd64.deb ...
+Unpacking libpipeline1:amd64 (1.5.5-1) ...
+Selecting previously unselected package libpng16-16:amd64.
+Preparing to unpack .../020-libpng16-16_1.6.37-3build5_amd64.deb ...
+Unpacking libpng16-16:amd64 (1.6.37-3build5) ...
+Selecting previously unselected package libpsl5:amd64.
+Preparing to unpack .../021-libpsl5_0.21.0-1.2build2_amd64.deb ...
+Unpacking libpsl5:amd64 (0.21.0-1.2build2) ...
+Selecting previously unselected package libuv1:amd64.
+Preparing to unpack .../022-libuv1_1.43.0-1ubuntu0.1_amd64.deb ...
+Unpacking libuv1:amd64 (1.43.0-1ubuntu0.1) ...
+Selecting previously unselected package libxau6:amd64.
+Preparing to unpack .../023-libxau6_1%3a1.0.9-1build5_amd64.deb ...
+Unpacking libxau6:amd64 (1:1.0.9-1build5) ...
+Selecting previously unselected package libxdmcp6:amd64.
+Preparing to unpack .../024-libxdmcp6_1%3a1.1.3-0ubuntu5_amd64.deb ...
+Unpacking libxdmcp6:amd64 (1:1.1.3-0ubuntu5) ...
+Selecting previously unselected package libxcb1:amd64.
+Preparing to unpack .../025-libxcb1_1.14-3ubuntu3_amd64.deb ...
+Unpacking libxcb1:amd64 (1.14-3ubuntu3) ...
+Selecting previously unselected package libx11-data.
+Preparing to unpack .../026-libx11-data_2%3a1.7.5-1ubuntu0.3_all.deb ...
+Unpacking libx11-data (2:1.7.5-1ubuntu0.3) ...
+Selecting previously unselected package libx11-6:amd64.
+Preparing to unpack .../027-libx11-6_2%3a1.7.5-1ubuntu0.3_amd64.deb ...
+Unpacking libx11-6:amd64 (2:1.7.5-1ubuntu0.3) ...
+Selecting previously unselected package manpages.
+Preparing to unpack .../028-manpages_5.10-1ubuntu1_all.deb ...
+Unpacking manpages (5.10-1ubuntu1) ...
+Selecting previously unselected package publicsuffix.
+Preparing to unpack .../029-publicsuffix_20211207.1025-1_all.deb ...
+Unpacking publicsuffix (20211207.1025-1) ...
+Selecting previously unselected package xz-utils.
+Preparing to unpack .../030-xz-utils_5.2.5-2ubuntu1_amd64.deb ...
+Unpacking xz-utils (5.2.5-2ubuntu1) ...
+Selecting previously unselected package binfmt-support.
+Preparing to unpack .../031-binfmt-support_2.2.1-2_amd64.deb ...
+Unpacking binfmt-support (2.2.1-2) ...
+Selecting previously unselected package binutils-common:amd64.
+Preparing to unpack .../032-binutils-common_2.38-4ubuntu2.6_amd64.deb ...
+Unpacking binutils-common:amd64 (2.38-4ubuntu2.6) ...
+Selecting previously unselected package libbinutils:amd64.
+Preparing to unpack .../033-libbinutils_2.38-4ubuntu2.6_amd64.deb ...
+Unpacking libbinutils:amd64 (2.38-4ubuntu2.6) ...
+Selecting previously unselected package libctf-nobfd0:amd64.
+Preparing to unpack .../034-libctf-nobfd0_2.38-4ubuntu2.6_amd64.deb ...
+Unpacking libctf-nobfd0:amd64 (2.38-4ubuntu2.6) ...
+Selecting previously unselected package libctf0:amd64.
+Preparing to unpack .../035-libctf0_2.38-4ubuntu2.6_amd64.deb ...
+Unpacking libctf0:amd64 (2.38-4ubuntu2.6) ...
+Selecting previously unselected package binutils-x86-64-linux-gnu.
+Preparing to unpack .../036-binutils-x86-64-linux-gnu_2.38-4ubuntu2.6_amd64.deb ...
+Unpacking binutils-x86-64-linux-gnu (2.38-4ubuntu2.6) ...
+Selecting previously unselected package binutils.
+Preparing to unpack .../037-binutils_2.38-4ubuntu2.6_amd64.deb ...
+Unpacking binutils (2.38-4ubuntu2.6) ...
+Selecting previously unselected package libc-dev-bin.
+Preparing to unpack .../038-libc-dev-bin_2.35-0ubuntu3.7_amd64.deb ...
+Unpacking libc-dev-bin (2.35-0ubuntu3.7) ...
+Selecting previously unselected package linux-libc-dev:amd64.
+Preparing to unpack .../039-linux-libc-dev_5.15.0-106.116_amd64.deb ...
+Unpacking linux-libc-dev:amd64 (5.15.0-106.116) ...
+Selecting previously unselected package libcrypt-dev:amd64.
+Preparing to unpack .../040-libcrypt-dev_1%3a4.4.27-1_amd64.deb ...
+Unpacking libcrypt-dev:amd64 (1:4.4.27-1) ...
+Selecting previously unselected package rpcsvc-proto.
+Preparing to unpack .../041-rpcsvc-proto_1.4.2-0ubuntu6_amd64.deb ...
+Unpacking rpcsvc-proto (1.4.2-0ubuntu6) ...
+Selecting previously unselected package libtirpc-dev:amd64.
+Preparing to unpack .../042-libtirpc-dev_1.3.2-2ubuntu0.1_amd64.deb ...
+Unpacking libtirpc-dev:amd64 (1.3.2-2ubuntu0.1) ...
+Selecting previously unselected package libnsl-dev:amd64.
+Preparing to unpack .../043-libnsl-dev_1.3.0-2build2_amd64.deb ...
+Unpacking libnsl-dev:amd64 (1.3.0-2build2) ...
+Selecting previously unselected package libc6-dev:amd64.
+Preparing to unpack .../044-libc6-dev_2.35-0ubuntu3.7_amd64.deb ...
+Unpacking libc6-dev:amd64 (2.35-0ubuntu3.7) ...
+Selecting previously unselected package gcc-11-base:amd64.
+Preparing to unpack .../045-gcc-11-base_11.4.0-1ubuntu1~22.04_amd64.deb ...
+Unpacking gcc-11-base:amd64 (11.4.0-1ubuntu1~22.04) ...
+Selecting previously unselected package libisl23:amd64.
+Preparing to unpack .../046-libisl23_0.24-2build1_amd64.deb ...
+Unpacking libisl23:amd64 (0.24-2build1) ...
+Selecting previously unselected package libmpfr6:amd64.
+Preparing to unpack .../047-libmpfr6_4.1.0-3build3_amd64.deb ...
+Unpacking libmpfr6:amd64 (4.1.0-3build3) ...
+Selecting previously unselected package libmpc3:amd64.
+Preparing to unpack .../048-libmpc3_1.2.1-2build1_amd64.deb ...
+Unpacking libmpc3:amd64 (1.2.1-2build1) ...
+Selecting previously unselected package cpp-11.
+Preparing to unpack .../049-cpp-11_11.4.0-1ubuntu1~22.04_amd64.deb ...
+Unpacking cpp-11 (11.4.0-1ubuntu1~22.04) ...
+Selecting previously unselected package cpp.
+Preparing to unpack .../050-cpp_4%3a11.2.0-1ubuntu1_amd64.deb ...
+Unpacking cpp (4:11.2.0-1ubuntu1) ...
+Selecting previously unselected package libcc1-0:amd64.
+Preparing to unpack .../051-libcc1-0_12.3.0-1ubuntu1~22.04_amd64.deb ...
+Unpacking libcc1-0:amd64 (12.3.0-1ubuntu1~22.04) ...
+Selecting previously unselected package libgomp1:amd64.
+Preparing to unpack .../052-libgomp1_12.3.0-1ubuntu1~22.04_amd64.deb ...
+Unpacking libgomp1:amd64 (12.3.0-1ubuntu1~22.04) ...
+Selecting previously unselected package libitm1:amd64.
+Preparing to unpack .../053-libitm1_12.3.0-1ubuntu1~22.04_amd64.deb ...
+Unpacking libitm1:amd64 (12.3.0-1ubuntu1~22.04) ...
+Selecting previously unselected package libatomic1:amd64.
+Preparing to unpack .../054-libatomic1_12.3.0-1ubuntu1~22.04_amd64.deb ...
+Unpacking libatomic1:amd64 (12.3.0-1ubuntu1~22.04) ...
+Selecting previously unselected package libasan6:amd64.
+Preparing to unpack .../055-libasan6_11.4.0-1ubuntu1~22.04_amd64.deb ...
+Unpacking libasan6:amd64 (11.4.0-1ubuntu1~22.04) ...
+Selecting previously unselected package liblsan0:amd64.
+Preparing to unpack .../056-liblsan0_12.3.0-1ubuntu1~22.04_amd64.deb ...
+Unpacking liblsan0:amd64 (12.3.0-1ubuntu1~22.04) ...
+Selecting previously unselected package libtsan0:amd64.
+Preparing to unpack .../057-libtsan0_11.4.0-1ubuntu1~22.04_amd64.deb ...
+Unpacking libtsan0:amd64 (11.4.0-1ubuntu1~22.04) ...
+Selecting previously unselected package libubsan1:amd64.
+Preparing to unpack .../058-libubsan1_12.3.0-1ubuntu1~22.04_amd64.deb ...
+Unpacking libubsan1:amd64 (12.3.0-1ubuntu1~22.04) ...
+Selecting previously unselected package libquadmath0:amd64.
+Preparing to unpack .../059-libquadmath0_12.3.0-1ubuntu1~22.04_amd64.deb ...
+Unpacking libquadmath0:amd64 (12.3.0-1ubuntu1~22.04) ...
+Selecting previously unselected package libgcc-11-dev:amd64.
+Preparing to unpack .../060-libgcc-11-dev_11.4.0-1ubuntu1~22.04_amd64.deb ...
+Unpacking libgcc-11-dev:amd64 (11.4.0-1ubuntu1~22.04) ...
+Selecting previously unselected package gcc-11.
+Preparing to unpack .../061-gcc-11_11.4.0-1ubuntu1~22.04_amd64.deb ...
+Unpacking gcc-11 (11.4.0-1ubuntu1~22.04) ...
+Selecting previously unselected package gcc.
+Preparing to unpack .../062-gcc_4%3a11.2.0-1ubuntu1_amd64.deb ...
+Unpacking gcc (4:11.2.0-1ubuntu1) ...
+Selecting previously unselected package libstdc++-11-dev:amd64.
+Preparing to unpack .../063-libstdc++-11-dev_11.4.0-1ubuntu1~22.04_amd64.deb ...
+Unpacking libstdc++-11-dev:amd64 (11.4.0-1ubuntu1~22.04) ...
+Selecting previously unselected package g++-11.
+Preparing to unpack .../064-g++-11_11.4.0-1ubuntu1~22.04_amd64.deb ...
+Unpacking g++-11 (11.4.0-1ubuntu1~22.04) ...
+Selecting previously unselected package g++.
+Preparing to unpack .../065-g++_4%3a11.2.0-1ubuntu1_amd64.deb ...
+Unpacking g++ (4:11.2.0-1ubuntu1) ...
+Selecting previously unselected package make.
+Preparing to unpack .../066-make_4.3-4.1build1_amd64.deb ...
+Unpacking make (4.3-4.1build1) ...
+Selecting previously unselected package libdpkg-perl.
+Preparing to unpack .../067-libdpkg-perl_1.21.1ubuntu2.3_all.deb ...
+Unpacking libdpkg-perl (1.21.1ubuntu2.3) ...
+Selecting previously unselected package bzip2.
+Preparing to unpack .../068-bzip2_1.0.8-5build1_amd64.deb ...
+Unpacking bzip2 (1.0.8-5build1) ...
+Selecting previously unselected package patch.
+Preparing to unpack .../069-patch_2.7.6-7build2_amd64.deb ...
+Unpacking patch (2.7.6-7build2) ...
+Selecting previously unselected package lto-disabled-list.
+Preparing to unpack .../070-lto-disabled-list_24_all.deb ...
+Unpacking lto-disabled-list (24) ...
+Selecting previously unselected package dpkg-dev.
+Preparing to unpack .../071-dpkg-dev_1.21.1ubuntu2.3_all.deb ...
+Unpacking dpkg-dev (1.21.1ubuntu2.3) ...
+Selecting previously unselected package build-essential.
+Preparing to unpack .../072-build-essential_12.9ubuntu3_amd64.deb ...
+Unpacking build-essential (12.9ubuntu3) ...
+Selecting previously unselected package libllvm14:amd64.
+Preparing to unpack .../073-libllvm14_1%3a14.0.0-1ubuntu1.1_amd64.deb ...
+Unpacking libllvm14:amd64 (1:14.0.0-1ubuntu1.1) ...
+Selecting previously unselected package libclang-cpp14.
+Preparing to unpack .../074-libclang-cpp14_1%3a14.0.0-1ubuntu1.1_amd64.deb ...
+Unpacking libclang-cpp14 (1:14.0.0-1ubuntu1.1) ...
+Selecting previously unselected package libgc1:amd64.
+Preparing to unpack .../075-libgc1_1%3a8.0.6-1.1build1_amd64.deb ...
+Unpacking libgc1:amd64 (1:8.0.6-1.1build1) ...
+Selecting previously unselected package libobjc4:amd64.
+Preparing to unpack .../076-libobjc4_12.3.0-1ubuntu1~22.04_amd64.deb ...
+Unpacking libobjc4:amd64 (12.3.0-1ubuntu1~22.04) ...
+Selecting previously unselected package libobjc-11-dev:amd64.
+Preparing to unpack .../077-libobjc-11-dev_11.4.0-1ubuntu1~22.04_amd64.deb ...
+Unpacking libobjc-11-dev:amd64 (11.4.0-1ubuntu1~22.04) ...
+Selecting previously unselected package libc6-i386.
+Preparing to unpack .../078-libc6-i386_2.35-0ubuntu3.7_amd64.deb ...
+Unpacking libc6-i386 (2.35-0ubuntu3.7) ...
+Selecting previously unselected package lib32gcc-s1.
+Preparing to unpack .../079-lib32gcc-s1_12.3.0-1ubuntu1~22.04_amd64.deb ...
+Unpacking lib32gcc-s1 (12.3.0-1ubuntu1~22.04) ...
+Selecting previously unselected package lib32stdc++6.
+Preparing to unpack .../080-lib32stdc++6_12.3.0-1ubuntu1~22.04_amd64.deb ...
+Unpacking lib32stdc++6 (12.3.0-1ubuntu1~22.04) ...
+Selecting previously unselected package libclang-common-14-dev.
+Preparing to unpack .../081-libclang-common-14-dev_1%3a14.0.0-1ubuntu1.1_amd64.deb ...
+Unpacking libclang-common-14-dev (1:14.0.0-1ubuntu1.1) ...
+Selecting previously unselected package llvm-14-linker-tools.
+Preparing to unpack .../082-llvm-14-linker-tools_1%3a14.0.0-1ubuntu1.1_amd64.deb ...
+Unpacking llvm-14-linker-tools (1:14.0.0-1ubuntu1.1) ...
+Selecting previously unselected package libclang1-14.
+Preparing to unpack .../083-libclang1-14_1%3a14.0.0-1ubuntu1.1_amd64.deb ...
+Unpacking libclang1-14 (1:14.0.0-1ubuntu1.1) ...
+Selecting previously unselected package clang-14.
+Preparing to unpack .../084-clang-14_1%3a14.0.0-1ubuntu1.1_amd64.deb ...
+Unpacking clang-14 (1:14.0.0-1ubuntu1.1) ...
+Selecting previously unselected package clang.
+Preparing to unpack .../085-clang_1%3a14.0-55~exp2_amd64.deb ...
+Unpacking clang (1:14.0-55~exp2) ...
+Selecting previously unselected package libarchive13:amd64.
+Preparing to unpack .../086-libarchive13_3.6.0-1ubuntu1_amd64.deb ...
+Unpacking libarchive13:amd64 (3.6.0-1ubuntu1) ...
+Selecting previously unselected package libbrotli1:amd64.
+Preparing to unpack .../087-libbrotli1_1.0.9-2build6_amd64.deb ...
+Unpacking libbrotli1:amd64 (1.0.9-2build6) ...
+Selecting previously unselected package libsasl2-modules-db:amd64.
+Preparing to unpack .../088-libsasl2-modules-db_2.1.27+dfsg2-3ubuntu1.2_amd64.deb ...
+Unpacking libsasl2-modules-db:amd64 (2.1.27+dfsg2-3ubuntu1.2) ...
+Selecting previously unselected package libsasl2-2:amd64.
+Preparing to unpack .../089-libsasl2-2_2.1.27+dfsg2-3ubuntu1.2_amd64.deb ...
+Unpacking libsasl2-2:amd64 (2.1.27+dfsg2-3ubuntu1.2) ...
+Selecting previously unselected package libldap-2.5-0:amd64.
+Preparing to unpack .../090-libldap-2.5-0_2.5.17+dfsg-0ubuntu0.22.04.1_amd64.deb ...
+Unpacking libldap-2.5-0:amd64 (2.5.17+dfsg-0ubuntu0.22.04.1) ...
+Selecting previously unselected package librtmp1:amd64.
+Preparing to unpack .../091-librtmp1_2.4+20151223.gitfa8646d.1-2build4_amd64.deb ...
+Unpacking librtmp1:amd64 (2.4+20151223.gitfa8646d.1-2build4) ...
+Selecting previously unselected package libssh-4:amd64.
+Preparing to unpack .../092-libssh-4_0.9.6-2ubuntu0.22.04.3_amd64.deb ...
+Unpacking libssh-4:amd64 (0.9.6-2ubuntu0.22.04.3) ...
+Selecting previously unselected package libcurl4:amd64.
+Preparing to unpack .../093-libcurl4_7.81.0-1ubuntu1.16_amd64.deb ...
+Unpacking libcurl4:amd64 (7.81.0-1ubuntu1.16) ...
+Selecting previously unselected package libjsoncpp25:amd64.
+Preparing to unpack .../094-libjsoncpp25_1.9.5-3_amd64.deb ...
+Unpacking libjsoncpp25:amd64 (1.9.5-3) ...
+Selecting previously unselected package librhash0:amd64.
+Preparing to unpack .../095-librhash0_1.4.2-1ubuntu1_amd64.deb ...
+Unpacking librhash0:amd64 (1.4.2-1ubuntu1) ...
+Selecting previously unselected package dh-elpa-helper.
+Preparing to unpack .../096-dh-elpa-helper_2.0.9ubuntu1_all.deb ...
+Unpacking dh-elpa-helper (2.0.9ubuntu1) ...
+Selecting previously unselected package emacsen-common.
+Preparing to unpack .../097-emacsen-common_3.0.4_all.deb ...
+Unpacking emacsen-common (3.0.4) ...
+Selecting previously unselected package cmake-data.
+Preparing to unpack .../098-cmake-data_3.22.1-1ubuntu1.22.04.2_all.deb ...
+Unpacking cmake-data (3.22.1-1ubuntu1.22.04.2) ...
+Selecting previously unselected package cmake.
+Preparing to unpack .../099-cmake_3.22.1-1ubuntu1.22.04.2_amd64.deb ...
+Unpacking cmake (3.22.1-1ubuntu1.22.04.2) ...
+Selecting previously unselected package libassuan0:amd64.
+Preparing to unpack .../100-libassuan0_2.5.5-1build1_amd64.deb ...
+Unpacking libassuan0:amd64 (2.5.5-1build1) ...
+Selecting previously unselected package gpgconf.
+Preparing to unpack .../101-gpgconf_2.2.27-3ubuntu2.1_amd64.deb ...
+Unpacking gpgconf (2.2.27-3ubuntu2.1) ...
+Selecting previously unselected package libksba8:amd64.
+Preparing to unpack .../102-libksba8_1.6.0-2ubuntu0.2_amd64.deb ...
+Unpacking libksba8:amd64 (1.6.0-2ubuntu0.2) ...
+Selecting previously unselected package libnpth0:amd64.
+Preparing to unpack .../103-libnpth0_1.6-3build2_amd64.deb ...
+Unpacking libnpth0:amd64 (1.6-3build2) ...
+Selecting previously unselected package dirmngr.
+Preparing to unpack .../104-dirmngr_2.2.27-3ubuntu2.1_amd64.deb ...
+Unpacking dirmngr (2.2.27-3ubuntu2.1) ...
+Selecting previously unselected package libfakeroot:amd64.
+Preparing to unpack .../105-libfakeroot_1.28-1ubuntu1_amd64.deb ...
+Unpacking libfakeroot:amd64 (1.28-1ubuntu1) ...
+Selecting previously unselected package fakeroot.
+Preparing to unpack .../106-fakeroot_1.28-1ubuntu1_amd64.deb ...
+Unpacking fakeroot (1.28-1ubuntu1) ...
+Selecting previously unselected package fonts-dejavu-core.
+Preparing to unpack .../107-fonts-dejavu-core_2.37-2build1_all.deb ...
+Unpacking fonts-dejavu-core (2.37-2build1) ...
+Selecting previously unselected package fontconfig-config.
+Preparing to unpack .../108-fontconfig-config_2.13.1-4.2ubuntu5_all.deb ...
+Unpacking fontconfig-config (2.13.1-4.2ubuntu5) ...
+Selecting previously unselected package gnupg-l10n.
+Preparing to unpack .../109-gnupg-l10n_2.2.27-3ubuntu2.1_all.deb ...
+Unpacking gnupg-l10n (2.2.27-3ubuntu2.1) ...
+Selecting previously unselected package gnupg-utils.
+Preparing to unpack .../110-gnupg-utils_2.2.27-3ubuntu2.1_amd64.deb ...
+Unpacking gnupg-utils (2.2.27-3ubuntu2.1) ...
+Selecting previously unselected package gpg.
+Preparing to unpack .../111-gpg_2.2.27-3ubuntu2.1_amd64.deb ...
+Unpacking gpg (2.2.27-3ubuntu2.1) ...
+Selecting previously unselected package pinentry-curses.
+Preparing to unpack .../112-pinentry-curses_1.1.1-1build2_amd64.deb ...
+Unpacking pinentry-curses (1.1.1-1build2) ...
+Selecting previously unselected package gpg-agent.
+Preparing to unpack .../113-gpg-agent_2.2.27-3ubuntu2.1_amd64.deb ...
+Unpacking gpg-agent (2.2.27-3ubuntu2.1) ...
+Selecting previously unselected package gpg-wks-client.
+Preparing to unpack .../114-gpg-wks-client_2.2.27-3ubuntu2.1_amd64.deb ...
+Unpacking gpg-wks-client (2.2.27-3ubuntu2.1) ...
+Selecting previously unselected package gpg-wks-server.
+Preparing to unpack .../115-gpg-wks-server_2.2.27-3ubuntu2.1_amd64.deb ...
+Unpacking gpg-wks-server (2.2.27-3ubuntu2.1) ...
+Selecting previously unselected package gpgsm.
+Preparing to unpack .../116-gpgsm_2.2.27-3ubuntu2.1_amd64.deb ...
+Unpacking gpgsm (2.2.27-3ubuntu2.1) ...
+Selecting previously unselected package gnupg.
+Preparing to unpack .../117-gnupg_2.2.27-3ubuntu2.1_all.deb ...
+Unpacking gnupg (2.2.27-3ubuntu2.1) ...
+Selecting previously unselected package icu-devtools.
+Preparing to unpack .../118-icu-devtools_70.1-2_amd64.deb ...
+Unpacking icu-devtools (70.1-2) ...
+Selecting previously unselected package libalgorithm-diff-perl.
+Preparing to unpack .../119-libalgorithm-diff-perl_1.201-1_all.deb ...
+Unpacking libalgorithm-diff-perl (1.201-1) ...
+Selecting previously unselected package libalgorithm-diff-xs-perl.
+Preparing to unpack .../120-libalgorithm-diff-xs-perl_0.04-6build3_amd64.deb ...
+Unpacking libalgorithm-diff-xs-perl (0.04-6build3) ...
+Selecting previously unselected package libalgorithm-merge-perl.
+Preparing to unpack .../121-libalgorithm-merge-perl_0.08-3_all.deb ...
+Unpacking libalgorithm-merge-perl (0.08-3) ...
+Selecting previously unselected package libfreetype6:amd64.
+Preparing to unpack .../122-libfreetype6_2.11.1+dfsg-1ubuntu0.2_amd64.deb ...
+Unpacking libfreetype6:amd64 (2.11.1+dfsg-1ubuntu0.2) ...
+Selecting previously unselected package libfontconfig1:amd64.
+Preparing to unpack .../123-libfontconfig1_2.13.1-4.2ubuntu5_amd64.deb ...
+Unpacking libfontconfig1:amd64 (2.13.1-4.2ubuntu5) ...
+Selecting previously unselected package libjpeg-turbo8:amd64.
+Preparing to unpack .../124-libjpeg-turbo8_2.1.2-0ubuntu1_amd64.deb ...
+Unpacking libjpeg-turbo8:amd64 (2.1.2-0ubuntu1) ...
+Selecting previously unselected package libjpeg8:amd64.
+Preparing to unpack .../125-libjpeg8_8c-2ubuntu10_amd64.deb ...
+Unpacking libjpeg8:amd64 (8c-2ubuntu10) ...
+Selecting previously unselected package libdeflate0:amd64.
+Preparing to unpack .../126-libdeflate0_1.10-2_amd64.deb ...
+Unpacking libdeflate0:amd64 (1.10-2) ...
+Selecting previously unselected package libjbig0:amd64.
+Preparing to unpack .../127-libjbig0_2.1-3.1ubuntu0.22.04.1_amd64.deb ...
+Unpacking libjbig0:amd64 (2.1-3.1ubuntu0.22.04.1) ...
+Selecting previously unselected package libwebp7:amd64.
+Preparing to unpack .../128-libwebp7_1.2.2-2ubuntu0.22.04.2_amd64.deb ...
+Unpacking libwebp7:amd64 (1.2.2-2ubuntu0.22.04.2) ...
+Selecting previously unselected package libtiff5:amd64.
+Preparing to unpack .../129-libtiff5_4.3.0-6ubuntu0.8_amd64.deb ...
+Unpacking libtiff5:amd64 (4.3.0-6ubuntu0.8) ...
+Selecting previously unselected package libxpm4:amd64.
+Preparing to unpack .../130-libxpm4_1%3a3.5.12-1ubuntu0.22.04.2_amd64.deb ...
+Unpacking libxpm4:amd64 (1:3.5.12-1ubuntu0.22.04.2) ...
+Selecting previously unselected package libgd3:amd64.
+Preparing to unpack .../131-libgd3_2.3.0-2ubuntu2_amd64.deb ...
+Unpacking libgd3:amd64 (2.3.0-2ubuntu2) ...
+Selecting previously unselected package libc-devtools.
+Preparing to unpack .../132-libc-devtools_2.35-0ubuntu3.7_amd64.deb ...
+Unpacking libc-devtools (2.35-0ubuntu3.7) ...
+Selecting previously unselected package libfile-fcntllock-perl.
+Preparing to unpack .../133-libfile-fcntllock-perl_0.22-3build7_amd64.deb ...
+Unpacking libfile-fcntllock-perl (0.22-3build7) ...
+Selecting previously unselected package libicu-dev:amd64.
+Preparing to unpack .../134-libicu-dev_70.1-2_amd64.deb ...
+Unpacking libicu-dev:amd64 (70.1-2) ...
+Selecting previously unselected package libldap-common.
+Preparing to unpack .../135-libldap-common_2.5.17+dfsg-0ubuntu0.22.04.1_all.deb ...
+Unpacking libldap-common (2.5.17+dfsg-0ubuntu0.22.04.1) ...
+Selecting previously unselected package libncurses-dev:amd64.
+Preparing to unpack .../136-libncurses-dev_6.3-2ubuntu0.1_amd64.deb ...
+Unpacking libncurses-dev:amd64 (6.3-2ubuntu0.1) ...
+Selecting previously unselected package libsasl2-modules:amd64.
+Preparing to unpack .../137-libsasl2-modules_2.1.27+dfsg2-3ubuntu1.2_amd64.deb ...
+Unpacking libsasl2-modules:amd64 (2.1.27+dfsg2-3ubuntu1.2) ...
+Selecting previously unselected package libtinfo-dev:amd64.
+Preparing to unpack .../138-libtinfo-dev_6.3-2ubuntu0.1_amd64.deb ...
+Unpacking libtinfo-dev:amd64 (6.3-2ubuntu0.1) ...
+Selecting previously unselected package libxml2-dev:amd64.
+Preparing to unpack .../139-libxml2-dev_2.9.13+dfsg-1ubuntu0.4_amd64.deb ...
+Unpacking libxml2-dev:amd64 (2.9.13+dfsg-1ubuntu0.4) ...
+Selecting previously unselected package llvm-14-runtime.
+Preparing to unpack .../140-llvm-14-runtime_1%3a14.0.0-1ubuntu1.1_amd64.deb ...
+Unpacking llvm-14-runtime (1:14.0.0-1ubuntu1.1) ...
+Selecting previously unselected package libpfm4:amd64.
+Preparing to unpack .../141-libpfm4_4.11.1+git32-gd0b85fb-1ubuntu0.1_amd64.deb ...
+Unpacking libpfm4:amd64 (4.11.1+git32-gd0b85fb-1ubuntu0.1) ...
+Selecting previously unselected package llvm-14.
+Preparing to unpack .../142-llvm-14_1%3a14.0.0-1ubuntu1.1_amd64.deb ...
+Unpacking llvm-14 (1:14.0.0-1ubuntu1.1) ...
+Selecting previously unselected package libffi-dev:amd64.
+Preparing to unpack .../143-libffi-dev_3.4.2-4_amd64.deb ...
+Unpacking libffi-dev:amd64 (3.4.2-4) ...
+Selecting previously unselected package python3-pygments.
+Preparing to unpack .../144-python3-pygments_2.11.2+dfsg-2_all.deb ...
+Unpacking python3-pygments (2.11.2+dfsg-2) ...
+Selecting previously unselected package llvm-14-tools.
+Preparing to unpack .../145-llvm-14-tools_1%3a14.0.0-1ubuntu1.1_amd64.deb ...
+Unpacking llvm-14-tools (1:14.0.0-1ubuntu1.1) ...
+Selecting previously unselected package libz3-4:amd64.
+Preparing to unpack .../146-libz3-4_4.8.12-1_amd64.deb ...
+Unpacking libz3-4:amd64 (4.8.12-1) ...
+Selecting previously unselected package libz3-dev:amd64.
+Preparing to unpack .../147-libz3-dev_4.8.12-1_amd64.deb ...
+Unpacking libz3-dev:amd64 (4.8.12-1) ...
+Selecting previously unselected package llvm-14-dev.
+Preparing to unpack .../148-llvm-14-dev_1%3a14.0.0-1ubuntu1.1_amd64.deb ...
+Unpacking llvm-14-dev (1:14.0.0-1ubuntu1.1) ...
+Selecting previously unselected package manpages-dev.
+Preparing to unpack .../149-manpages-dev_5.10-1ubuntu1_all.deb ...
+Unpacking manpages-dev (5.10-1ubuntu1) ...
+Setting up libksba8:amd64 (1.6.0-2ubuntu0.2) ...
+Setting up media-types (7.0.0) ...
+Setting up libpipeline1:amd64 (1.5.5-1) ...
+Setting up gcc-11-base:amd64 (11.4.0-1ubuntu1~22.04) ...
+Setting up libxau6:amd64 (1:1.0.9-1build5) ...
+Setting up lto-disabled-list (24) ...
+Setting up libpsl5:amd64 (0.21.0-1.2build2) ...
+Setting up libyaml-0-2:amd64 (0.2.2-1build2) ...
+Setting up manpages (5.10-1ubuntu1) ...
+Setting up libbrotli1:amd64 (1.0.9-2build6) ...
+Setting up libsqlite3-0:amd64 (3.37.2-2ubuntu0.3) ...
+Setting up libsasl2-modules:amd64 (2.1.27+dfsg2-3ubuntu1.2) ...
+Setting up binutils-common:amd64 (2.38-4ubuntu2.6) ...
+Setting up libnghttp2-14:amd64 (1.43.0-1ubuntu0.2) ...
+Setting up libdeflate0:amd64 (1.10-2) ...
+Setting up linux-libc-dev:amd64 (5.15.0-106.116) ...
+Setting up libctf-nobfd0:amd64 (2.38-4ubuntu2.6) ...
+Setting up libnpth0:amd64 (1.6-3build2) ...
+Setting up libassuan0:amd64 (2.5.5-1build1) ...
+Setting up libgomp1:amd64 (12.3.0-1ubuntu1~22.04) ...
+Setting up perl-modules-5.34 (5.34.0-3ubuntu1.3) ...
+Setting up bzip2 (1.0.8-5build1) ...
+Setting up libffi-dev:amd64 (3.4.2-4) ...
+Setting up libldap-common (2.5.17+dfsg-0ubuntu0.22.04.1) ...
+Setting up libjbig0:amd64 (2.1-3.1ubuntu0.22.04.1) ...
+Setting up libfakeroot:amd64 (1.28-1ubuntu1) ...
+Setting up libasan6:amd64 (11.4.0-1ubuntu1~22.04) ...
+Setting up libsasl2-modules-db:amd64 (2.1.27+dfsg2-3ubuntu1.2) ...
+Setting up fakeroot (1.28-1ubuntu1) ...
+update-alternatives: using /usr/bin/fakeroot-sysv to provide /usr/bin/fakeroot (fakeroot) in auto mode
+update-alternatives: warning: skip creation of /usr/share/man/man1/fakeroot.1.gz because associated file /usr/share/man/man1/fakeroot-sysv.1.gz (of link group fakeroot) doesn't exist
+update-alternatives: warning: skip creation of /usr/share/man/man1/faked.1.gz because associated file /usr/share/man/man1/faked-sysv.1.gz (of link group fakeroot) doesn't exist
+update-alternatives: warning: skip creation of /usr/share/man/es/man1/fakeroot.1.gz because associated file /usr/share/man/es/man1/fakeroot-sysv.1.gz (of link group fakeroot) doesn't exist
+update-alternatives: warning: skip creation of /usr/share/man/es/man1/faked.1.gz because associated file /usr/share/man/es/man1/faked-sysv.1.gz (of link group fakeroot) doesn't exist
+update-alternatives: warning: skip creation of /usr/share/man/fr/man1/fakeroot.1.gz because associated file /usr/share/man/fr/man1/fakeroot-sysv.1.gz (of link group fakeroot) doesn't exist
+update-alternatives: warning: skip creation of /usr/share/man/fr/man1/faked.1.gz because associated file /usr/share/man/fr/man1/faked-sysv.1.gz (of link group fakeroot) doesn't exist
+update-alternatives: warning: skip creation of /usr/share/man/sv/man1/fakeroot.1.gz because associated file /usr/share/man/sv/man1/fakeroot-sysv.1.gz (of link group fakeroot) doesn't exist
+update-alternatives: warning: skip creation of /usr/share/man/sv/man1/faked.1.gz because associated file /usr/share/man/sv/man1/faked-sysv.1.gz (of link group fakeroot) doesn't exist
+Setting up libz3-4:amd64 (4.8.12-1) ...
+Setting up libtirpc-dev:amd64 (1.3.2-2ubuntu0.1) ...
+Setting up libuv1:amd64 (1.43.0-1ubuntu0.1) ...
+Setting up libpfm4:amd64 (4.11.1+git32-gd0b85fb-1ubuntu0.1) ...
+Setting up rpcsvc-proto (1.4.2-0ubuntu6) ...
+Setting up emacsen-common (3.0.4) ...
+Setting up libx11-data (2:1.7.5-1ubuntu0.3) ...
+Setting up make (4.3-4.1build1) ...
+Setting up libmpfr6:amd64 (4.1.0-3build3) ...
+Setting up gnupg-l10n (2.2.27-3ubuntu2.1) ...
+Setting up librtmp1:amd64 (2.4+20151223.gitfa8646d.1-2build4) ...
+Setting up dh-elpa-helper (2.0.9ubuntu1) ...
+Setting up xz-utils (5.2.5-2ubuntu1) ...
+update-alternatives: using /usr/bin/xz to provide /usr/bin/lzma (lzma) in auto mode
+update-alternatives: warning: skip creation of /usr/share/man/man1/lzma.1.gz because associated file /usr/share/man/man1/xz.1.gz (of link group lzma) doesn't exist
+update-alternatives: warning: skip creation of /usr/share/man/man1/unlzma.1.gz because associated file /usr/share/man/man1/unxz.1.gz (of link group lzma) doesn't exist
+update-alternatives: warning: skip creation of /usr/share/man/man1/lzcat.1.gz because associated file /usr/share/man/man1/xzcat.1.gz (of link group lzma) doesn't exist
+update-alternatives: warning: skip creation of /usr/share/man/man1/lzmore.1.gz because associated file /usr/share/man/man1/xzmore.1.gz (of link group lzma) doesn't exist
+update-alternatives: warning: skip creation of /usr/share/man/man1/lzless.1.gz because associated file /usr/share/man/man1/xzless.1.gz (of link group lzma) doesn't exist
+update-alternatives: warning: skip creation of /usr/share/man/man1/lzdiff.1.gz because associated file /usr/share/man/man1/xzdiff.1.gz (of link group lzma) doesn't exist
+update-alternatives: warning: skip creation of /usr/share/man/man1/lzcmp.1.gz because associated file /usr/share/man/man1/xzcmp.1.gz (of link group lzma) doesn't exist
+update-alternatives: warning: skip creation of /usr/share/man/man1/lzgrep.1.gz because associated file /usr/share/man/man1/xzgrep.1.gz (of link group lzma) doesn't exist
+update-alternatives: warning: skip creation of /usr/share/man/man1/lzegrep.1.gz because associated file /usr/share/man/man1/xzegrep.1.gz (of link group lzma) doesn't exist
+update-alternatives: warning: skip creation of /usr/share/man/man1/lzfgrep.1.gz because associated file /usr/share/man/man1/xzfgrep.1.gz (of link group lzma) doesn't exist
+Setting up libquadmath0:amd64 (12.3.0-1ubuntu1~22.04) ...
+Setting up libpng16-16:amd64 (1.6.37-3build5) ...
+Setting up libmpc3:amd64 (1.2.1-2build1) ...
+Setting up libatomic1:amd64 (12.3.0-1ubuntu1~22.04) ...
+Setting up patch (2.7.6-7build2) ...
+Setting up binfmt-support (2.2.1-2) ...
+invoke-rc.d: could not determine current runlevel
+invoke-rc.d: policy-rc.d denied execution of restart.
+Setting up libjsoncpp25:amd64 (1.9.5-3) ...
+Setting up fonts-dejavu-core (2.37-2build1) ...
+Setting up ucf (3.0043) ...
+debconf: unable to initialize frontend: Dialog
+debconf: (TERM is not set, so the dialog frontend is not usable.)
+debconf: falling back to frontend: Readline
+Setting up libjpeg-turbo8:amd64 (2.1.2-0ubuntu1) ...
+Setting up libgc1:amd64 (1:8.0.6-1.1build1) ...
+Setting up libsasl2-2:amd64 (2.1.27+dfsg2-3ubuntu1.2) ...
+Setting up libssh-4:amd64 (0.9.6-2ubuntu0.22.04.3) ...
+Setting up libwebp7:amd64 (1.2.2-2ubuntu0.22.04.2) ...
+Setting up libubsan1:amd64 (12.3.0-1ubuntu1~22.04) ...
+Setting up libmd0:amd64 (1.0.4-1build1) ...
+Setting up libnsl-dev:amd64 (1.3.0-2build2) ...
+Setting up librhash0:amd64 (1.4.2-1ubuntu1) ...
+Setting up libcrypt-dev:amd64 (1:4.4.27-1) ...
+Setting up libmpdec3:amd64 (2.5.1-2build2) ...
+Setting up libc6-i386 (2.35-0ubuntu3.7) ...
+Setting up netbase (6.3) ...
+Setting up cmake-data (3.22.1-1ubuntu1.22.04.2) ...
+Setting up libbinutils:amd64 (2.38-4ubuntu2.6) ...
+Setting up libisl23:amd64 (0.24-2build1) ...
+Setting up libc-dev-bin (2.35-0ubuntu3.7) ...
+Setting up openssl (3.0.2-0ubuntu1.15) ...
+Setting up libbsd0:amd64 (0.11.5-1) ...
+Setting up readline-common (8.1.2-1) ...
+Setting up publicsuffix (20211207.1025-1) ...
+Setting up libcc1-0:amd64 (12.3.0-1ubuntu1~22.04) ...
+Setting up liblocale-gettext-perl (1.07-4build3) ...
+Setting up liblsan0:amd64 (12.3.0-1ubuntu1~22.04) ...
+Setting up libitm1:amd64 (12.3.0-1ubuntu1~22.04) ...
+Setting up libgdbm6:amd64 (1.23-1) ...
+Setting up libicu70:amd64 (70.1-2) ...
+Setting up libtsan0:amd64 (11.4.0-1ubuntu1~22.04) ...
+Setting up libctf0:amd64 (2.38-4ubuntu2.6) ...
+Setting up libjpeg8:amd64 (8c-2ubuntu10) ...
+Setting up pinentry-curses (1.1.1-1build2) ...
+Setting up cpp-11 (11.4.0-1ubuntu1~22.04) ...
+Setting up libz3-dev:amd64 (4.8.12-1) ...
+Setting up manpages-dev (5.10-1ubuntu1) ...
+Setting up libxdmcp6:amd64 (1:1.1.3-0ubuntu5) ...
+Setting up libxcb1:amd64 (1.14-3ubuntu3) ...
+Setting up fontconfig-config (2.13.1-4.2ubuntu5) ...
+Setting up libedit2:amd64 (3.1-20210910-1build1) ...
+Setting up libreadline8:amd64 (8.1.2-1) ...
+Setting up libobjc4:amd64 (12.3.0-1ubuntu1~22.04) ...
+Setting up libldap-2.5-0:amd64 (2.5.17+dfsg-0ubuntu0.22.04.1) ...
+Setting up libpython3.10-stdlib:amd64 (3.10.12-1~22.04.3) ...
+Setting up ca-certificates (20230311ubuntu0.22.04.1) ...
+debconf: unable to initialize frontend: Dialog
+debconf: (TERM is not set, so the dialog frontend is not usable.)
+debconf: falling back to frontend: Readline
+Updating certificates in /etc/ssl/certs...
+137 added, 0 removed; done.
+Setting up libfreetype6:amd64 (2.11.1+dfsg-1ubuntu0.2) ...
+Setting up lib32gcc-s1 (12.3.0-1ubuntu1~22.04) ...
+Setting up lib32stdc++6 (12.3.0-1ubuntu1~22.04) ...
+Setting up icu-devtools (70.1-2) ...
+Setting up libgdbm-compat4:amd64 (1.23-1) ...
+Setting up libgcc-11-dev:amd64 (11.4.0-1ubuntu1~22.04) ...
+Setting up cpp (4:11.2.0-1ubuntu1) ...
+Setting up gpgconf (2.2.27-3ubuntu2.1) ...
+Setting up libcurl4:amd64 (7.81.0-1ubuntu1.16) ...
+Setting up libc6-dev:amd64 (2.35-0ubuntu3.7) ...
+Setting up libx11-6:amd64 (2:1.7.5-1ubuntu0.3) ...
+Setting up libtiff5:amd64 (4.3.0-6ubuntu0.8) ...
+Setting up libfontconfig1:amd64 (2.13.1-4.2ubuntu5) ...
+Setting up libicu-dev:amd64 (70.1-2) ...
+Setting up libxml2:amd64 (2.9.13+dfsg-1ubuntu0.4) ...
+Setting up gpg (2.2.27-3ubuntu2.1) ...
+Setting up libpython3-stdlib:amd64 (3.10.6-1~22.04) ...
+Setting up gnupg-utils (2.2.27-3ubuntu2.1) ...
+Setting up binutils-x86-64-linux-gnu (2.38-4ubuntu2.6) ...
+Setting up libperl5.34:amd64 (5.34.0-3ubuntu1.3) ...
+Setting up libncurses-dev:amd64 (6.3-2ubuntu0.1) ...
+Setting up gpg-agent (2.2.27-3ubuntu2.1) ...
+Setting up python3.10 (3.10.12-1~22.04.3) ...
+Setting up libxpm4:amd64 (1:3.5.12-1ubuntu0.22.04.2) ...
+Setting up libarchive13:amd64 (3.6.0-1ubuntu1) ...
+Setting up gpgsm (2.2.27-3ubuntu2.1) ...
+Setting up libobjc-11-dev:amd64 (11.4.0-1ubuntu1~22.04) ...
+Setting up python3 (3.10.6-1~22.04) ...
+running python rtupdate hooks for python3.10...
+running python post-rtupdate hooks for python3.10...
+Setting up binutils (2.38-4ubuntu2.6) ...
+Setting up dirmngr (2.2.27-3ubuntu2.1) ...
+Setting up perl (5.34.0-3ubuntu1.3) ...
+Setting up libxml2-dev:amd64 (2.9.13+dfsg-1ubuntu0.4) ...
+Setting up libgd3:amd64 (2.3.0-2ubuntu2) ...
+Setting up libdpkg-perl (1.21.1ubuntu2.3) ...
+Setting up libstdc++-11-dev:amd64 (11.4.0-1ubuntu1~22.04) ...
+Setting up gpg-wks-server (2.2.27-3ubuntu2.1) ...
+Setting up libllvm14:amd64 (1:14.0.0-1ubuntu1.1) ...
+Setting up gcc-11 (11.4.0-1ubuntu1~22.04) ...
+Setting up cmake (3.22.1-1ubuntu1.22.04.2) ...
+Setting up llvm-14-linker-tools (1:14.0.0-1ubuntu1.1) ...
+Setting up libc-devtools (2.35-0ubuntu3.7) ...
+Setting up python3-pkg-resources (59.6.0-1.2ubuntu0.22.04.1) ...
+Setting up libtinfo-dev:amd64 (6.3-2ubuntu0.1) ...
+Setting up gpg-wks-client (2.2.27-3ubuntu2.1) ...
+Setting up g++-11 (11.4.0-1ubuntu1~22.04) ...
+Setting up libfile-fcntllock-perl (0.22-3build7) ...
+Setting up libalgorithm-diff-perl (1.201-1) ...
+Setting up libclang1-14 (1:14.0.0-1ubuntu1.1) ...
+Setting up python3-yaml (5.4.1-1ubuntu1) ...
+Setting up gcc (4:11.2.0-1ubuntu1) ...
+Setting up dpkg-dev (1.21.1ubuntu2.3) ...
+Setting up python3-pygments (2.11.2+dfsg-2) ...
+Setting up llvm-14-runtime (1:14.0.0-1ubuntu1.1) ...
+Setting up libclang-common-14-dev (1:14.0.0-1ubuntu1.1) ...
+Setting up libclang-cpp14 (1:14.0.0-1ubuntu1.1) ...
+Setting up g++ (4:11.2.0-1ubuntu1) ...
+update-alternatives: using /usr/bin/g++ to provide /usr/bin/c++ (c++) in auto mode
+update-alternatives: warning: skip creation of /usr/share/man/man1/c++.1.gz because associated file /usr/share/man/man1/g++.1.gz (of link group c++) doesn't exist
+Setting up gnupg (2.2.27-3ubuntu2.1) ...
+Setting up build-essential (12.9ubuntu3) ...
+Setting up libalgorithm-diff-xs-perl (0.04-6build3) ...
+Setting up libalgorithm-merge-perl (0.08-3) ...
+Setting up llvm-14 (1:14.0.0-1ubuntu1.1) ...
+Setting up llvm-14-tools (1:14.0.0-1ubuntu1.1) ...
+Setting up clang-14 (1:14.0.0-1ubuntu1.1) ...
+Setting up clang (1:14.0-55~exp2) ...
+Setting up llvm-14-dev (1:14.0.0-1ubuntu1.1) ...
+Processing triggers for libc-bin (2.35-0ubuntu3.7) ...
+Processing triggers for ca-certificates (20230311ubuntu0.22.04.1) ...
+Updating certificates in /etc/ssl/certs...
+0 added, 0 removed; done.
+Running hooks in /etc/ca-certificates/update.d...
+done.
+ ---> Removed intermediate container 91e5ca3585ec
+ ---> fcfd8aa4fc61
+Step 4/12 : COPY . print/
+ ---> 28ea512ceffa
+Step 5/12 : WORKDIR print
+ ---> Running in dcf7431a8e36
+ ---> Removed intermediate container dcf7431a8e36
+ ---> ca0fa3b507bf
+Step 6/12 : RUN cmake -H. -B_build -DCMAKE_BUILD_TYPE=Release -DCMAKE_INSTALL_PREFIX=_install
+ ---> Running in d9070a95c7ae
+-- [hunter] Initializing Hunter workspace (a20151e4c0740ee7d0f9994476856d813cdead29)
+-- [hunter]   https://github.com/cpp-pm/hunter/archive/v0.25.5.tar.gz
+-- [hunter]   -> /root/.hunter/_Base/Download/Hunter/0.25.5/a20151e
+-- The C compiler identification is GNU 11.4.0
+-- The CXX compiler identification is GNU 11.4.0
 -- Detecting C compiler ABI info
 -- Detecting C compiler ABI info - done
--- Check for working C compiler: /sbin/cc - skipped
+-- Check for working C compiler: /usr/bin/cc - skipped
 -- Detecting C compile features
 -- Detecting C compile features - done
 -- Detecting CXX compiler ABI info
 -- Detecting CXX compiler ABI info - done
--- Check for working CXX compiler: /sbin/c++ - skipped
+-- Check for working CXX compiler: /usr/bin/c++ - skipped
 -- Detecting CXX compile features
 -- Detecting CXX compile features - done
 -- [hunter] Calculating Toolchain-SHA1
 -- [hunter] Calculating Config-SHA1
--- [hunter] HUNTER_ROOT: .hunter
--- [hunter] [ Hunter-ID: a20151e | Toolchain-ID: bfeb507 | Config-ID: 4abab25 ]
--- [hunter] GTEST_ROOT: .hunter/_Base/a20151e/bfeb507/4abab25/Install (ver.: 1.14.0)
+-- [hunter] HUNTER_ROOT: /root/.hunter
+-- [hunter] [ Hunter-ID: a20151e | Toolchain-ID: 347e47c | Config-ID: 4abab25 ]
+-- [hunter] GTEST_ROOT: /root/.hunter/_Base/a20151e/347e47c/4abab25/Install (ver.: 1.14.0)
 -- [hunter] Building GTest
-loading initial cache file .hunter/_Base/a20151e/bfeb507/4abab25/cache.cmake
-loading initial cache file .hunter/_Base/a20151e/bfeb507/4abab25/Build/GTest/args.cmake
--- The C compiler identification is GNU 14.1.1
--- The CXX compiler identification is GNU 14.1.1
--- Check for working C compiler: /sbin/cc - skipped
+loading initial cache file /root/.hunter/_Base/a20151e/347e47c/4abab25/cache.cmake
+loading initial cache file /root/.hunter/_Base/a20151e/347e47c/4abab25/Build/GTest/args.cmake
+-- The C compiler identification is GNU 11.4.0
+-- The CXX compiler identification is GNU 11.4.0
+-- Check for working C compiler: /usr/bin/cc - skipped
 -- Detecting C compile features
 -- Detecting C compile features - done
--- Check for working CXX compiler: /sbin/c++ - skipped
+-- Check for working CXX compiler: /usr/bin/c++ - skipped
 -- Detecting CXX compile features
 -- Detecting CXX compile features - done
--- Configuring done (0.1s)
--- Generating done (0.0s)
--- Build files have been written to: .hunter/_Base/a20151e/bfeb507/4abab25/Build/GTest/Build
+-- Configuring done
+-- Generating done
+-- Build files have been written to: /root/.hunter/_Base/a20151e/347e47c/4abab25/Build/GTest/Build
 [  6%] Creating directories for 'GTest-Release'
 [ 12%] Performing download step (download, verify and extract) for 'GTest-Release'
+-- Downloading...
+   dst='/root/.hunter/_Base/Download/GTest/1.14.0/2b28c2a/v1.14.0.tar.gz'
+   timeout='none'
+   inactivity timeout='none'
+-- Using src='https://github.com/google/googletest/archive/v1.14.0.tar.gz'
+-- [download 2% complete]
+-- [download 3% complete]
+-- [download 4% complete]
+-- [download 5% complete]
+-- [download 6% complete]
+-- [download 7% complete]
+-- [download 8% complete]
+-- [download 9% complete]
+-- [download 10% complete]
+-- [download 11% complete]
+-- [download 12% complete]
+-- [download 13% complete]
+-- [download 14% complete]
+-- [download 15% complete]
+-- [download 16% complete]
+-- [download 17% complete]
+-- [download 19% complete]
+-- [download 20% complete]
+-- [download 21% complete]
+-- [download 22% complete]
+-- [download 23% complete]
+-- [download 24% complete]
+-- [download 25% complete]
+-- [download 26% complete]
+-- [download 27% complete]
+-- [download 28% complete]
+-- [download 29% complete]
+-- [download 30% complete]
+-- [download 31% complete]
+-- [download 32% complete]
+-- [download 33% complete]
+-- [download 34% complete]
+-- [download 35% complete]
+-- [download 36% complete]
+-- [download 37% complete]
+-- [download 38% complete]
+-- [download 39% complete]
+-- [download 40% complete]
+-- [download 41% complete]
+-- [download 55% complete]
+-- [download 56% complete]
+-- [download 57% complete]
+-- [download 59% complete]
+-- [download 61% complete]
+-- [download 64% complete]
+-- [download 65% complete]
+-- [download 66% complete]
+-- [download 68% complete]
+-- [download 74% complete]
+-- [download 75% complete]
+-- [download 76% complete]
+-- [download 77% complete]
+-- [download 78% complete]
+-- [download 79% complete]
+-- [download 80% complete]
+-- [download 81% complete]
+-- [download 82% complete]
+-- [download 83% complete]
+-- [download 84% complete]
+-- [download 85% complete]
+-- [download 86% complete]
+-- [download 87% complete]
+-- [download 88% complete]
+-- [download 89% complete]
+-- [download 91% complete]
+-- [download 92% complete]
+-- [download 93% complete]
+-- [download 95% complete]
+-- [download 100% complete]
 -- verifying file...
-       file='.hunter/_Base/Download/GTest/1.14.0/2b28c2a/v1.14.0.tar.gz'
--- File already exists and hash match (skip download):
-  file='.hunter/_Base/Download/GTest/1.14.0/2b28c2a/v1.14.0.tar.gz'
-  SHA1='2b28c2a3a30d86b1759543ef61fac3c4d69f8c4c'
+       file='/root/.hunter/_Base/Download/GTest/1.14.0/2b28c2a/v1.14.0.tar.gz'
+-- Downloading... done
 -- extracting...
-     src='.hunter/_Base/Download/GTest/1.14.0/2b28c2a/v1.14.0.tar.gz'
-     dst='.hunter/_Base/a20151e/bfeb507/4abab25/Build/GTest/Source'
+     src='/root/.hunter/_Base/Download/GTest/1.14.0/2b28c2a/v1.14.0.tar.gz'
+     dst='/root/.hunter/_Base/a20151e/347e47c/4abab25/Build/GTest/Source'
 -- extracting... [tar xfz]
 -- extracting... [analysis]
 -- extracting... [rename]
@@ -139,509 +1290,31 @@ loading initial cache file .hunter/_Base/a20151e/bfeb507/4abab25/Build/GTest/arg
 [ 18%] No update step for 'GTest-Release'
 [ 25%] No patch step for 'GTest-Release'
 [ 31%] Performing configure step for 'GTest-Release'
-loading initial cache file .hunter/_Base/a20151e/bfeb507/4abab25/cache.cmake
-loading initial cache file .hunter/_Base/a20151e/bfeb507/4abab25/Build/GTest/args.cmake
--- The C compiler identification is GNU 14.1.1
--- The CXX compiler identification is GNU 14.1.1
--- Check for working C compiler: /sbin/cc - skipped
+loading initial cache file /root/.hunter/_Base/a20151e/347e47c/4abab25/cache.cmake
+loading initial cache file /root/.hunter/_Base/a20151e/347e47c/4abab25/Build/GTest/args.cmake
+-- The C compiler identification is GNU 11.4.0
+-- The CXX compiler identification is GNU 11.4.0
+-- Check for working C compiler: /usr/bin/cc - skipped
 -- Detecting C compile features
 -- Detecting C compile features - done
--- Check for working CXX compiler: /sbin/c++ - skipped
+-- Check for working CXX compiler: /usr/bin/c++ - skipped
 -- Detecting CXX compile features
 -- Detecting CXX compile features - done
--- Found Python3: /sbin/python3.12 (found version "3.12.3") found components: Interpreter
+-- Found Python3: /usr/bin/python3.10 (found version "3.10.12") found components: Interpreter 
+-- Looking for pthread.h
+-- Looking for pthread.h - found
 -- Performing Test CMAKE_HAVE_LIBC_PTHREAD
 -- Performing Test CMAKE_HAVE_LIBC_PTHREAD - Success
--- Found Threads: TRUE
--- Configuring done (0.4s)
--- Generating done (0.0s)
--- Build files have been written to: .hunter/_Base/a20151e/bfeb507/4abab25/Build/GTest/Build/GTest-Release-prefix/src/GTest-Release-build
+-- Found Threads: TRUE  
+-- Configuring done
+-- Generating done
+-- Build files have been written to: /root/.hunter/_Base/a20151e/347e47c/4abab25/Build/GTest/Build/GTest-Release-prefix/src/GTest-Release-build
 [ 37%] Performing build step for 'GTest-Release'
 [ 12%] Building CXX object googletest/CMakeFiles/gtest.dir/src/gtest-all.cc.o
 [ 25%] Linking CXX static library ../lib/libgtest.a
-[ 25%] Built target gtest
-[ 50%] Building CXX object googlemock/CMakeFiles/gmock.dir/src/gmock-all.cc.o
-[ 50%] Building CXX object googletest/CMakeFiles/gtest_main.dir/src/gtest_main.cc.o
-[ 62%] Linking CXX static library ../lib/libgtest_main.a
-[ 62%] Built target gtest_main
-[ 75%] Linking CXX static library ../lib/libgmock.a
-[ 75%] Built target gmock
-[ 87%] Building CXX object googlemock/CMakeFiles/gmock_main.dir/src/gmock_main.cc.o
-[100%] Linking CXX static library ../lib/libgmock_main.a
-[100%] Built target gmock_main
-[ 43%] Performing install step for 'GTest-Release'
--- Installing: .hunter/_Base/a20151e/bfeb507/4abab25/Build/GTest/Install/include
--- Installing: .hunter/_Base/a20151e/bfeb507/4abab25/Build/GTest/Install/include/gmock
--- Installing: .hunter/_Base/a20151e/bfeb507/4abab25/Build/GTest/Install/include/gmock/gmock-actions.h
--- Installing: .hunter/_Base/a20151e/bfeb507/4abab25/Build/GTest/Install/include/gmock/gmock-cardinalities.h
--- Installing: .hunter/_Base/a20151e/bfeb507/4abab25/Build/GTest/Install/include/gmock/gmock-function-mocker.h
--- Installing: .hunter/_Base/a20151e/bfeb507/4abab25/Build/GTest/Install/include/gmock/gmock-matchers.h
--- Installing: .hunter/_Base/a20151e/bfeb507/4abab25/Build/GTest/Install/include/gmock/gmock-more-actions.h
--- Installing: .hunter/_Base/a20151e/bfeb507/4abab25/Build/GTest/Install/include/gmock/gmock-more-matchers.h
--- Installing: .hunter/_Base/a20151e/bfeb507/4abab25/Build/GTest/Install/include/gmock/gmock-nice-strict.h
--- Installing: .hunter/_Base/a20151e/bfeb507/4abab25/Build/GTest/Install/include/gmock/gmock-spec-builders.h
--- Installing: .hunter/_Base/a20151e/bfeb507/4abab25/Build/GTest/Install/include/gmock/gmock.h
--- Installing: .hunter/_Base/a20151e/bfeb507/4abab25/Build/GTest/Install/include/gmock/internal
--- Installing: .hunter/_Base/a20151e/bfeb507/4abab25/Build/GTest/Install/include/gmock/internal/custom
--- Installing: .hunter/_Base/a20151e/bfeb507/4abab25/Build/GTest/Install/include/gmock/internal/custom/README.md
--- Installing: .hunter/_Base/a20151e/bfeb507/4abab25/Build/GTest/Install/include/gmock/internal/custom/gmock-generated-actions.h
--- Installing: .hunter/_Base/a20151e/bfeb507/4abab25/Build/GTest/Install/include/gmock/internal/custom/gmock-matchers.h
--- Installing: .hunter/_Base/a20151e/bfeb507/4abab25/Build/GTest/Install/include/gmock/internal/custom/gmock-port.h
--- Installing: .hunter/_Base/a20151e/bfeb507/4abab25/Build/GTest/Install/include/gmock/internal/gmock-internal-utils.h
--- Installing: .hunter/_Base/a20151e/bfeb507/4abab25/Build/GTest/Install/include/gmock/internal/gmock-port.h
--- Installing: .hunter/_Base/a20151e/bfeb507/4abab25/Build/GTest/Install/include/gmock/internal/gmock-pp.h
--- Installing: .hunter/_Base/a20151e/bfeb507/4abab25/Build/GTest/Install/lib/libgmock.a
--- Installing: .hunter/_Base/a20151e/bfeb507/4abab25/Build/GTest/Install/lib/libgmock_main.a
--- Installing: .hunter/_Base/a20151e/bfeb507/4abab25/Build/GTest/Install/lib/pkgconfig/gmock.pc
--- Installing: .hunter/_Base/a20151e/bfeb507/4abab25/Build/GTest/Install/lib/pkgconfig/gmock_main.pc
--- Installing: .hunter/_Base/a20151e/bfeb507/4abab25/Build/GTest/Install/lib/cmake/GTest/GTestTargets.cmake
--- Installing: .hunter/_Base/a20151e/bfeb507/4abab25/Build/GTest/Install/lib/cmake/GTest/GTestTargets-release.cmake
--- Installing: .hunter/_Base/a20151e/bfeb507/4abab25/Build/GTest/Install/lib/cmake/GTest/GTestConfigVersion.cmake
--- Installing: .hunter/_Base/a20151e/bfeb507/4abab25/Build/GTest/Install/lib/cmake/GTest/GTestConfig.cmake
--- Up-to-date: .hunter/_Base/a20151e/bfeb507/4abab25/Build/GTest/Install/include
--- Installing: .hunter/_Base/a20151e/bfeb507/4abab25/Build/GTest/Install/include/gtest
--- Installing: .hunter/_Base/a20151e/bfeb507/4abab25/Build/GTest/Install/include/gtest/gtest-assertion-result.h
--- Installing: .hunter/_Base/a20151e/bfeb507/4abab25/Build/GTest/Install/include/gtest/gtest-death-test.h
--- Installing: .hunter/_Base/a20151e/bfeb507/4abab25/Build/GTest/Install/include/gtest/gtest-matchers.h
--- Installing: .hunter/_Base/a20151e/bfeb507/4abab25/Build/GTest/Install/include/gtest/gtest-message.h
--- Installing: .hunter/_Base/a20151e/bfeb507/4abab25/Build/GTest/Install/include/gtest/gtest-param-test.h
--- Installing: .hunter/_Base/a20151e/bfeb507/4abab25/Build/GTest/Install/include/gtest/gtest-printers.h
--- Installing: .hunter/_Base/a20151e/bfeb507/4abab25/Build/GTest/Install/include/gtest/gtest-spi.h
--- Installing: .hunter/_Base/a20151e/bfeb507/4abab25/Build/GTest/Install/include/gtest/gtest-test-part.h
--- Installing: .hunter/_Base/a20151e/bfeb507/4abab25/Build/GTest/Install/include/gtest/gtest-typed-test.h
--- Installing: .hunter/_Base/a20151e/bfeb507/4abab25/Build/GTest/Install/include/gtest/gtest.h
--- Installing: .hunter/_Base/a20151e/bfeb507/4abab25/Build/GTest/Install/include/gtest/gtest_pred_impl.h
--- Installing: .hunter/_Base/a20151e/bfeb507/4abab25/Build/GTest/Install/include/gtest/gtest_prod.h
--- Installing: .hunter/_Base/a20151e/bfeb507/4abab25/Build/GTest/Install/include/gtest/internal
--- Installing: .hunter/_Base/a20151e/bfeb507/4abab25/Build/GTest/Install/include/gtest/internal/custom
--- Installing: .hunter/_Base/a20151e/bfeb507/4abab25/Build/GTest/Install/include/gtest/internal/custom/README.md
--- Installing: .hunter/_Base/a20151e/bfeb507/4abab25/Build/GTest/Install/include/gtest/internal/custom/gtest-port.h
--- Installing: .hunter/_Base/a20151e/bfeb507/4abab25/Build/GTest/Install/include/gtest/internal/custom/gtest-printers.h
--- Installing: .hunter/_Base/a20151e/bfeb507/4abab25/Build/GTest/Install/include/gtest/internal/custom/gtest.h
--- Installing: .hunter/_Base/a20151e/bfeb507/4abab25/Build/GTest/Install/include/gtest/internal/gtest-death-test-internal.h
--- Installing: .hunter/_Base/a20151e/bfeb507/4abab25/Build/GTest/Install/include/gtest/internal/gtest-filepath.h
--- Installing: .hunter/_Base/a20151e/bfeb507/4abab25/Build/GTest/Install/include/gtest/internal/gtest-internal.h
--- Installing: .hunter/_Base/a20151e/bfeb507/4abab25/Build/GTest/Install/include/gtest/internal/gtest-param-util.h
--- Installing: .hunter/_Base/a20151e/bfeb507/4abab25/Build/GTest/Install/include/gtest/internal/gtest-port-arch.h
--- Installing: .hunter/_Base/a20151e/bfeb507/4abab25/Build/GTest/Install/include/gtest/internal/gtest-port.h
--- Installing: .hunter/_Base/a20151e/bfeb507/4abab25/Build/GTest/Install/include/gtest/internal/gtest-string.h
--- Installing: .hunter/_Base/a20151e/bfeb507/4abab25/Build/GTest/Install/include/gtest/internal/gtest-type-util.h
--- Installing: .hunter/_Base/a20151e/bfeb507/4abab25/Build/GTest/Install/lib/libgtest.a
--- Installing: .hunter/_Base/a20151e/bfeb507/4abab25/Build/GTest/Install/lib/libgtest_main.a
--- Installing: .hunter/_Base/a20151e/bfeb507/4abab25/Build/GTest/Install/lib/pkgconfig/gtest.pc
--- Installing: .hunter/_Base/a20151e/bfeb507/4abab25/Build/GTest/Install/lib/pkgconfig/gtest_main.pc
-loading initial cache file .hunter/_Base/a20151e/bfeb507/4abab25/Build/GTest/args.cmake
-[ 50%] Completed 'GTest-Release'
-[ 50%] Built target GTest-Release
-[ 56%] Creating directories for 'GTest-Debug'
-[ 62%] Performing download step (download, verify and extract) for 'GTest-Debug'
--- verifying file...
-       file='.hunter/_Base/Download/GTest/1.14.0/2b28c2a/v1.14.0.tar.gz'
--- File already exists and hash match (skip download):
-  file='.hunter/_Base/Download/GTest/1.14.0/2b28c2a/v1.14.0.tar.gz'
-  SHA1='2b28c2a3a30d86b1759543ef61fac3c4d69f8c4c'
--- extracting...
-     src='.hunter/_Base/Download/GTest/1.14.0/2b28c2a/v1.14.0.tar.gz'
-     dst='.hunter/_Base/a20151e/bfeb507/4abab25/Build/GTest/Source'
--- extracting... [tar xfz]
--- extracting... [analysis]
--- extracting... [rename]
--- extracting... [clean up]
--- extracting... done
-[ 68%] No update step for 'GTest-Debug'
-[ 75%] No patch step for 'GTest-Debug'
-[ 81%] Performing configure step for 'GTest-Debug'
-loading initial cache file .hunter/_Base/a20151e/bfeb507/4abab25/cache.cmake
-loading initial cache file .hunter/_Base/a20151e/bfeb507/4abab25/Build/GTest/args.cmake
--- The C compiler identification is GNU 14.1.1
--- The CXX compiler identification is GNU 14.1.1
--- Check for working C compiler: /sbin/cc - skipped
--- Detecting C compile features
--- Detecting C compile features - done
--- Check for working CXX compiler: /sbin/c++ - skipped
--- Detecting CXX compile features
--- Detecting CXX compile features - done
--- Found Python3: /sbin/python3.12 (found version "3.12.3") found components: Interpreter
--- Performing Test CMAKE_HAVE_LIBC_PTHREAD
--- Performing Test CMAKE_HAVE_LIBC_PTHREAD - Success
--- Found Threads: TRUE
--- Configuring done (0.4s)
--- Generating done (0.0s)
--- Build files have been written to: .hunter/_Base/a20151e/bfeb507/4abab25/Build/GTest/Build/GTest-Debug-prefix/src/GTest-Debug-build
-[ 87%] Performing build step for 'GTest-Debug'
-[ 12%] Building CXX object googletest/CMakeFiles/gtest.dir/src/gtest-all.cc.o
-[ 25%] Linking CXX static library ../lib/libgtestd.a
 [ 25%] Built target gtest
 [ 37%] Building CXX object googletest/CMakeFiles/gtest_main.dir/src/gtest_main.cc.o
 [ 50%] Building CXX object googlemock/CMakeFiles/gmock.dir/src/gmock-all.cc.o
-[ 62%] Linking CXX static library ../lib/libgtest_maind.a
-[ 62%] Built target gtest_main
-[ 75%] Linking CXX static library ../lib/libgmockd.a
-[ 75%] Built target gmock
-[ 87%] Building CXX object googlemock/CMakeFiles/gmock_main.dir/src/gmock_main.cc.o
-[100%] Linking CXX static library ../lib/libgmock_maind.a
-[100%] Built target gmock_main
-[ 93%] Performing install step for 'GTest-Debug'
--- Up-to-date: .hunter/_Base/a20151e/bfeb507/4abab25/Build/GTest/Install/include
--- Up-to-date: .hunter/_Base/a20151e/bfeb507/4abab25/Build/GTest/Install/include/gmock
--- Installing: .hunter/_Base/a20151e/bfeb507/4abab25/Build/GTest/Install/include/gmock/gmock-actions.h
--- Installing: .hunter/_Base/a20151e/bfeb507/4abab25/Build/GTest/Install/include/gmock/gmock-cardinalities.h
--- Installing: .hunter/_Base/a20151e/bfeb507/4abab25/Build/GTest/Install/include/gmock/gmock-function-mocker.h
--- Installing: .hunter/_Base/a20151e/bfeb507/4abab25/Build/GTest/Install/include/gmock/gmock-matchers.h
--- Installing: .hunter/_Base/a20151e/bfeb507/4abab25/Build/GTest/Install/include/gmock/gmock-more-actions.h
--- Installing: .hunter/_Base/a20151e/bfeb507/4abab25/Build/GTest/Install/include/gmock/gmock-more-matchers.h
--- Installing: .hunter/_Base/a20151e/bfeb507/4abab25/Build/GTest/Install/include/gmock/gmock-nice-strict.h
--- Installing: .hunter/_Base/a20151e/bfeb507/4abab25/Build/GTest/Install/include/gmock/gmock-spec-builders.h
--- Installing: .hunter/_Base/a20151e/bfeb507/4abab25/Build/GTest/Install/include/gmock/gmock.h
--- Up-to-date: .hunter/_Base/a20151e/bfeb507/4abab25/Build/GTest/Install/include/gmock/internal
--- Up-to-date: .hunter/_Base/a20151e/bfeb507/4abab25/Build/GTest/Install/include/gmock/internal/custom
--- Installing: .hunter/_Base/a20151e/bfeb507/4abab25/Build/GTest/Install/include/gmock/internal/custom/README.md
--- Installing: .hunter/_Base/a20151e/bfeb507/4abab25/Build/GTest/Install/include/gmock/internal/custom/gmock-generated-actions.h
--- Installing: .hunter/_Base/a20151e/bfeb507/4abab25/Build/GTest/Install/include/gmock/internal/custom/gmock-matchers.h
--- Installing: .hunter/_Base/a20151e/bfeb507/4abab25/Build/GTest/Install/include/gmock/internal/custom/gmock-port.h
--- Installing: .hunter/_Base/a20151e/bfeb507/4abab25/Build/GTest/Install/include/gmock/internal/gmock-internal-utils.h
--- Installing: .hunter/_Base/a20151e/bfeb507/4abab25/Build/GTest/Install/include/gmock/internal/gmock-port.h
--- Installing: .hunter/_Base/a20151e/bfeb507/4abab25/Build/GTest/Install/include/gmock/internal/gmock-pp.h
--- Installing: .hunter/_Base/a20151e/bfeb507/4abab25/Build/GTest/Install/lib/libgmockd.a
--- Installing: .hunter/_Base/a20151e/bfeb507/4abab25/Build/GTest/Install/lib/libgmock_maind.a
--- Installing: .hunter/_Base/a20151e/bfeb507/4abab25/Build/GTest/Install/lib/pkgconfig/gmock.pc
--- Installing: .hunter/_Base/a20151e/bfeb507/4abab25/Build/GTest/Install/lib/pkgconfig/gmock_main.pc
--- Installing: .hunter/_Base/a20151e/bfeb507/4abab25/Build/GTest/Install/lib/cmake/GTest/GTestTargets.cmake
--- Installing: .hunter/_Base/a20151e/bfeb507/4abab25/Build/GTest/Install/lib/cmake/GTest/GTestTargets-debug.cmake
--- Installing: .hunter/_Base/a20151e/bfeb507/4abab25/Build/GTest/Install/lib/cmake/GTest/GTestConfigVersion.cmake
--- Installing: .hunter/_Base/a20151e/bfeb507/4abab25/Build/GTest/Install/lib/cmake/GTest/GTestConfig.cmake
--- Up-to-date: .hunter/_Base/a20151e/bfeb507/4abab25/Build/GTest/Install/include
--- Up-to-date: .hunter/_Base/a20151e/bfeb507/4abab25/Build/GTest/Install/include/gtest
--- Installing: .hunter/_Base/a20151e/bfeb507/4abab25/Build/GTest/Install/include/gtest/gtest-assertion-result.h
--- Installing: .hunter/_Base/a20151e/bfeb507/4abab25/Build/GTest/Install/include/gtest/gtest-death-test.h
--- Installing: .hunter/_Base/a20151e/bfeb507/4abab25/Build/GTest/Install/include/gtest/gtest-matchers.h
--- Installing: .hunter/_Base/a20151e/bfeb507/4abab25/Build/GTest/Install/include/gtest/gtest-message.h
--- Installing: .hunter/_Base/a20151e/bfeb507/4abab25/Build/GTest/Install/include/gtest/gtest-param-test.h
--- Installing: .hunter/_Base/a20151e/bfeb507/4abab25/Build/GTest/Install/include/gtest/gtest-printers.h
--- Installing: .hunter/_Base/a20151e/bfeb507/4abab25/Build/GTest/Install/include/gtest/gtest-spi.h
--- Installing: .hunter/_Base/a20151e/bfeb507/4abab25/Build/GTest/Install/include/gtest/gtest-test-part.h
--- Installing: .hunter/_Base/a20151e/bfeb507/4abab25/Build/GTest/Install/include/gtest/gtest-typed-test.h
--- Installing: .hunter/_Base/a20151e/bfeb507/4abab25/Build/GTest/Install/include/gtest/gtest.h
--- Installing: .hunter/_Base/a20151e/bfeb507/4abab25/Build/GTest/Install/include/gtest/gtest_pred_impl.h
--- Installing: .hunter/_Base/a20151e/bfeb507/4abab25/Build/GTest/Install/include/gtest/gtest_prod.h
--- Up-to-date: .hunter/_Base/a20151e/bfeb507/4abab25/Build/GTest/Install/include/gtest/internal
--- Up-to-date: .hunter/_Base/a20151e/bfeb507/4abab25/Build/GTest/Install/include/gtest/internal/custom
--- Installing: .hunter/_Base/a20151e/bfeb507/4abab25/Build/GTest/Install/include/gtest/internal/custom/README.md
--- Installing: .hunter/_Base/a20151e/bfeb507/4abab25/Build/GTest/Install/include/gtest/internal/custom/gtest-port.h
--- Installing: .hunter/_Base/a20151e/bfeb507/4abab25/Build/GTest/Install/include/gtest/internal/custom/gtest-printers.h
--- Installing: .hunter/_Base/a20151e/bfeb507/4abab25/Build/GTest/Install/include/gtest/internal/custom/gtest.h
--- Installing: .hunter/_Base/a20151e/bfeb507/4abab25/Build/GTest/Install/include/gtest/internal/gtest-death-test-internal.h
--- Installing: .hunter/_Base/a20151e/bfeb507/4abab25/Build/GTest/Install/include/gtest/internal/gtest-filepath.h
--- Installing: .hunter/_Base/a20151e/bfeb507/4abab25/Build/GTest/Install/include/gtest/internal/gtest-internal.h
--- Installing: .hunter/_Base/a20151e/bfeb507/4abab25/Build/GTest/Install/include/gtest/internal/gtest-param-util.h
--- Installing: .hunter/_Base/a20151e/bfeb507/4abab25/Build/GTest/Install/include/gtest/internal/gtest-port-arch.h
--- Installing: .hunter/_Base/a20151e/bfeb507/4abab25/Build/GTest/Install/include/gtest/internal/gtest-port.h
--- Installing: .hunter/_Base/a20151e/bfeb507/4abab25/Build/GTest/Install/include/gtest/internal/gtest-string.h
--- Installing: .hunter/_Base/a20151e/bfeb507/4abab25/Build/GTest/Install/include/gtest/internal/gtest-type-util.h
--- Installing: .hunter/_Base/a20151e/bfeb507/4abab25/Build/GTest/Install/lib/libgtestd.a
--- Installing: .hunter/_Base/a20151e/bfeb507/4abab25/Build/GTest/Install/lib/libgtest_maind.a
--- Installing: .hunter/_Base/a20151e/bfeb507/4abab25/Build/GTest/Install/lib/pkgconfig/gtest.pc
--- Installing: .hunter/_Base/a20151e/bfeb507/4abab25/Build/GTest/Install/lib/pkgconfig/gtest_main.pc
-loading initial cache file .hunter/_Base/a20151e/bfeb507/4abab25/Build/GTest/args.cmake
-[100%] Completed 'GTest-Debug'
-[100%] Built target GTest-Debug
--- [hunter] Build step successful (dir: .hunter/_Base/a20151e/bfeb507/4abab25/Build/GTest)
--- [hunter] Cache saved: .hunter/_Base/Cache/raw/2868dce809e469adf79a8f821fbba2e5fa60b198.tar.bz2
--- Performing Test CMAKE_HAVE_LIBC_PTHREAD
--- Performing Test CMAKE_HAVE_LIBC_PTHREAD - Success
--- Found Threads: TRUE
--- Configuring done (20.0s)
--- Generating done (0.0s)
--- Build files have been written to: lab07/_builds
-```
-
-```sh
-❯ cmake --build _builds
-[ 25%] Building CXX object CMakeFiles/print.dir/sources/print.cpp.o
-[ 50%] Linking CXX static library libprint.a
-[ 50%] Built target print
-[ 75%] Building CXX object CMakeFiles/check.dir/tests/test1.cpp.o
-[100%] Linking CXX executable check
-[100%] Built target check
-
-❯ cmake --build _builds --target test
-Running tests...
-Test project Projects/TIMP/Workbench/lab07/_builds
-    Start 1: check
-1/1 Test #1: check ............................   Passed    0.00 sec
-
-100% tests passed, 0 tests failed out of 1
-
-Total Test time (real) =   0.00 sec
-```
-
-```sh
-❯ ls -la $HOME/.hunter 
-total 0
-drwxr-xr-x 1 user user  10 May  6 12:26 .
-drwx------ 1 user user 576 May 10 09:46 ..
-drwxr-xr-x 1 user user  66 May 10 09:15 _Base
-```
-
-```sh
-❯ mkdir demo 
-❯ cat > demo/main.cpp <<EOF
-#include <print.hpp>
-
-#include <cstdlib>
-
-int main(int argc, char* argv[])
-{
-  const char* log_path = std::getenv("LOG_PATH");
-  if (log_path == nullptr)
-  {
-    std::cerr << "undefined environment variable: LOG_PATH" << std::endl;
-    return 1;
-  }
-  std::string text;
-  while (std::cin >> text)
-  {
-    std::ofstream out{log_path, std::ios_base::app};
-    print(text, out);
-    out << std::endl;
-  }
-}
-EOF
-
-❯ nvim CMakeLists.txt
-```
-
-```sh
-❯ mkdir tools 
-❯ git submodule add https://github.com/ruslo/polly tools/polly
-Cloning into 'Projects/TIMP/Workbench/lab07/tools/polly'...
-remote: Enumerating objects: 6578, done.
-remote: Counting objects: 100% (32/32), done.
-remote: Compressing objects: 100% (15/15), done.
-remote: Total 6578 (delta 21), reused 20 (delta 17), pack-reused 6546
-Receiving objects: 100% (6578/6578), 1.68 MiB | 944.00 KiB/s, done.
-Resolving deltas: 100% (4551/4551), done.
-```
-
-```sh
-❯ tools/polly/bin/polly.py --test 
-Python version: 3.12
-Build dir: Projects/TIMP/Workbench/lab07/_builds/default
-Execute command: [
-  `which`
-  `cmake`
-]
-
-[Projects/TIMP/Workbench/lab07]> "which" "cmake"
-
-/sbin/cmake
-Execute command: [
-  `cmake`
-  `--version`
-]
-
-[Projects/TIMP/Workbench/lab07]> "cmake" "--version"
-
-cmake version 3.29.3
-
-CMake suite maintained and supported by Kitware (kitware.com/cmake).
-Execute command: [
-  `cmake`
-  `-H.`
-  `-BProjects/TIMP/Workbench/lab07/_builds/default`
-  `-DCMAKE_TOOLCHAIN_FILE=Projects/TIMP/Workbench/lab07/tools/polly/default.cmake`
-]
-
-[Projects/TIMP/Workbench/lab07]> "cmake" "-H." "-BProjects/TIMP/Workbench/lab07/_builds/default" "-DCMAKE_TOOLCHAIN_FILE=Projects/TIMP/Workbench/lab07/tools/polly/default.cmake"
-
-CMake Deprecation Warning at CMakeLists.txt:1 (cmake_minimum_required):
-  Compatibility with CMake < 3.5 will be removed from a future version of
-  CMake.
-
-  Update the VERSION argument <min> value or use a ...<max> suffix to tell
-  CMake that the project does not need compatibility with older versions.
-
-
--- [polly] Used toolchain: Default
--- The C compiler identification is GNU 14.1.1
--- The CXX compiler identification is GNU 14.1.1
--- Detecting C compiler ABI info
--- Detecting C compiler ABI info - done
--- Check for working C compiler: /sbin/cc - skipped
--- Detecting C compile features
--- Detecting C compile features - done
--- Detecting CXX compiler ABI info
--- Detecting CXX compiler ABI info - done
--- Check for working CXX compiler: /sbin/c++ - skipped
--- Detecting CXX compile features
--- Detecting CXX compile features - done
--- [hunter] Calculating Toolchain-SHA1
--- [hunter] Calculating Config-SHA1
--- [hunter] HUNTER_ROOT: .hunter
--- [hunter] [ Hunter-ID: a20151e | Toolchain-ID: bfeb507 | Config-ID: 4abab25 ]
--- [hunter] GTEST_ROOT: .hunter/_Base/a20151e/bfeb507/4abab25/Install (ver.: 1.14.0)
--- Performing Test CMAKE_HAVE_LIBC_PTHREAD
--- Performing Test CMAKE_HAVE_LIBC_PTHREAD - Success
--- Found Threads: TRUE
--- Configuring done (0.9s)
--- Generating done (0.0s)
--- Build files have been written to: Projects/TIMP/Workbench/lab07/_builds/default
-Execute command: [
-  `cmake`
-  `--build`
-  `Projects/TIMP/Workbench/lab07/_builds/default`
-  `--`
-]
-
-[Projects/TIMP/Workbench/lab07]> "cmake" "--build" "Projects/TIMP/Workbench/lab07/_builds/default" "--"
-
-[ 25%] Building CXX object CMakeFiles/print.dir/sources/print.cpp.o
-[ 50%] Linking CXX static library libprint.a
-[ 50%] Built target print
-[ 75%] Building CXX object CMakeFiles/demo.dir/demo/main.cpp.o
-[100%] Linking CXX executable demo
-[100%] Built target demo
-Run tests
-Execute command: [
-  `ctest`
-]
-
-[Projects/TIMP/Workbench/lab07/_builds/default]> "ctest"
-
-*********************************
-No test configuration file found!
-*********************************
-Usage
-
-  ctest [options]
-
--
-Log saved: Projects/TIMP/Workbench/lab07/_logs/polly/default/log.txt
--
-Generate: 0:00:01.869441s
-Build: 0:00:01.469534s
-Test: 0:00:00.012114s
--
-Total: 0:00:03.351290s
--
-SUCCESS
-```
-
-```sh
-❯ tools/polly/bin/polly.py --toolchain clang-cxx14 
-Python version: 3.12
-Build dir: Projects/TIMP/Workbench/lab07/_builds/clang-cxx14
-Execute command: [
-  `which`
-  `cmake`
-]
-
-[Projects/TIMP/Workbench/lab07]> "which" "cmake"
-
-/sbin/cmake
-Execute command: [
-  `cmake`
-  `--version`
-]
-
-[Projects/TIMP/Workbench/lab07]> "cmake" "--version"
-
-cmake version 3.29.3
-
-CMake suite maintained and supported by Kitware (kitware.com/cmake).
-Execute command: [
-  `cmake`
-  `-H.`
-  `-BProjects/TIMP/Workbench/lab07/_builds/clang-cxx14`
-  `-GUnix Makefiles`
-  `-DCMAKE_TOOLCHAIN_FILE=Projects/TIMP/Workbench/lab07/tools/polly/clang-cxx14.cmake`
-]
-
-[Projects/TIMP/Workbench/lab07]> "cmake" "-H." "-BProjects/TIMP/Workbench/lab07/_builds/clang-cxx14" "-GUnix Makefiles" "-DCMAKE_TOOLCHAIN_FILE=Projects/TIMP/Workbench/lab07/tools/polly/clang-cxx14.cmake"
-
-CMake Deprecation Warning at CMakeLists.txt:1 (cmake_minimum_required):
-  Compatibility with CMake < 3.5 will be removed from a future version of
-  CMake.
-
-  Update the VERSION argument <min> value or use a ...<max> suffix to tell
-  CMake that the project does not need compatibility with older versions.
-
-
--- [polly] Used toolchain: clang / c++14 support
--- The C compiler identification is Clang 17.0.6
--- The CXX compiler identification is Clang 17.0.6
--- Detecting C compiler ABI info
--- Detecting C compiler ABI info - done
--- Check for working C compiler: /sbin/clang - skipped
--- Detecting C compile features
--- Detecting C compile features - done
--- Detecting CXX compiler ABI info
--- Detecting CXX compiler ABI info - done
--- Check for working CXX compiler: /sbin/clang++ - skipped
--- Detecting CXX compile features
--- Detecting CXX compile features - done
--- [hunter] Calculating Toolchain-SHA1
--- [hunter] Calculating Config-SHA1
--- [hunter] HUNTER_ROOT: .hunter
--- [hunter] [ Hunter-ID: a20151e | Toolchain-ID: 55ff7a0 | Config-ID: 4abab25 ]
--- [hunter] GTEST_ROOT: .hunter/_Base/a20151e/55ff7a0/4abab25/Install (ver.: 1.14.0)
--- [hunter] Building GTest
-loading initial cache file .hunter/_Base/a20151e/55ff7a0/4abab25/cache.cmake
-loading initial cache file .hunter/_Base/a20151e/55ff7a0/4abab25/Build/GTest/args.cmake
--- [polly] Used toolchain: clang / c++14 support
--- The C compiler identification is Clang 17.0.6
--- The CXX compiler identification is Clang 17.0.6
--- Check for working C compiler: /sbin/clang - skipped
--- Detecting C compile features
--- Detecting C compile features - done
--- Check for working CXX compiler: /sbin/clang++ - skipped
--- Detecting CXX compile features
--- Detecting CXX compile features - done
--- Configuring done (0.2s)
--- Generating done (0.0s)
--- Build files have been written to: .hunter/_Base/a20151e/55ff7a0/4abab25/Build/GTest/Build
-[  6%] Creating directories for 'GTest-Release'
-[ 12%] Performing download step (download, verify and extract) for 'GTest-Release'
--- verifying file...
-       file='.hunter/_Base/Download/GTest/1.14.0/2b28c2a/v1.14.0.tar.gz'
--- File already exists and hash match (skip download):
-  file='.hunter/_Base/Download/GTest/1.14.0/2b28c2a/v1.14.0.tar.gz'
-  SHA1='2b28c2a3a30d86b1759543ef61fac3c4d69f8c4c'
--- extracting...
-     src='.hunter/_Base/Download/GTest/1.14.0/2b28c2a/v1.14.0.tar.gz'
-     dst='.hunter/_Base/a20151e/55ff7a0/4abab25/Build/GTest/Source'
--- extracting... [tar xfz]
--- extracting... [analysis]
--- extracting... [rename]
--- extracting... [clean up]
--- extracting... done
-[ 18%] No update step for 'GTest-Release'
-[ 25%] No patch step for 'GTest-Release'
-[ 31%] Performing configure step for 'GTest-Release'
-loading initial cache file .hunter/_Base/a20151e/55ff7a0/4abab25/cache.cmake
-loading initial cache file .hunter/_Base/a20151e/55ff7a0/4abab25/Build/GTest/args.cmake
--- [polly] Used toolchain: clang / c++14 support
--- The C compiler identification is Clang 17.0.6
--- The CXX compiler identification is Clang 17.0.6
--- Check for working C compiler: /sbin/clang - skipped
--- Detecting C compile features
--- Detecting C compile features - done
--- Check for working CXX compiler: /sbin/clang++ - skipped
--- Detecting CXX compile features
--- Detecting CXX compile features - done
--- Found Python3: /sbin/python3.12 (found version "3.12.3") found components: Interpreter
--- Performing Test CMAKE_HAVE_LIBC_PTHREAD
--- Performing Test CMAKE_HAVE_LIBC_PTHREAD - Success
--- Found Threads: TRUE
--- Configuring done (0.4s)
--- Generating done (0.0s)
--- Build files have been written to: .hunter/_Base/a20151e/55ff7a0/4abab25/Build/GTest/Build/GTest-Release-prefix/src/GTest-Release-build
-[ 37%] Performing build step for 'GTest-Release'
-[ 12%] Building CXX object googletest/CMakeFiles/gtest.dir/src/gtest-all.cc.o
-[ 25%] Linking CXX static library ../lib/libgtest.a
-[ 25%] Built target gtest
-[ 50%] Building CXX object googlemock/CMakeFiles/gmock.dir/src/gmock-all.cc.o
-[ 50%] Building CXX object googletest/CMakeFiles/gtest_main.dir/src/gtest_main.cc.o
 [ 62%] Linking CXX static library ../lib/libgtest_main.a
 [ 62%] Built target gtest_main
 [ 75%] Linking CXX static library ../lib/libgmock.a
@@ -650,79 +1323,79 @@ loading initial cache file .hunter/_Base/a20151e/55ff7a0/4abab25/Build/GTest/arg
 [100%] Linking CXX static library ../lib/libgmock_main.a
 [100%] Built target gmock_main
 [ 43%] Performing install step for 'GTest-Release'
--- Installing: .hunter/_Base/a20151e/55ff7a0/4abab25/Build/GTest/Install/include
--- Installing: .hunter/_Base/a20151e/55ff7a0/4abab25/Build/GTest/Install/include/gmock
--- Installing: .hunter/_Base/a20151e/55ff7a0/4abab25/Build/GTest/Install/include/gmock/gmock-actions.h
--- Installing: .hunter/_Base/a20151e/55ff7a0/4abab25/Build/GTest/Install/include/gmock/gmock-cardinalities.h
--- Installing: .hunter/_Base/a20151e/55ff7a0/4abab25/Build/GTest/Install/include/gmock/gmock-function-mocker.h
--- Installing: .hunter/_Base/a20151e/55ff7a0/4abab25/Build/GTest/Install/include/gmock/gmock-matchers.h
--- Installing: .hunter/_Base/a20151e/55ff7a0/4abab25/Build/GTest/Install/include/gmock/gmock-more-actions.h
--- Installing: .hunter/_Base/a20151e/55ff7a0/4abab25/Build/GTest/Install/include/gmock/gmock-more-matchers.h
--- Installing: .hunter/_Base/a20151e/55ff7a0/4abab25/Build/GTest/Install/include/gmock/gmock-nice-strict.h
--- Installing: .hunter/_Base/a20151e/55ff7a0/4abab25/Build/GTest/Install/include/gmock/gmock-spec-builders.h
--- Installing: .hunter/_Base/a20151e/55ff7a0/4abab25/Build/GTest/Install/include/gmock/gmock.h
--- Installing: .hunter/_Base/a20151e/55ff7a0/4abab25/Build/GTest/Install/include/gmock/internal
--- Installing: .hunter/_Base/a20151e/55ff7a0/4abab25/Build/GTest/Install/include/gmock/internal/custom
--- Installing: .hunter/_Base/a20151e/55ff7a0/4abab25/Build/GTest/Install/include/gmock/internal/custom/README.md
--- Installing: .hunter/_Base/a20151e/55ff7a0/4abab25/Build/GTest/Install/include/gmock/internal/custom/gmock-generated-actions.h
--- Installing: .hunter/_Base/a20151e/55ff7a0/4abab25/Build/GTest/Install/include/gmock/internal/custom/gmock-matchers.h
--- Installing: .hunter/_Base/a20151e/55ff7a0/4abab25/Build/GTest/Install/include/gmock/internal/custom/gmock-port.h
--- Installing: .hunter/_Base/a20151e/55ff7a0/4abab25/Build/GTest/Install/include/gmock/internal/gmock-internal-utils.h
--- Installing: .hunter/_Base/a20151e/55ff7a0/4abab25/Build/GTest/Install/include/gmock/internal/gmock-port.h
--- Installing: .hunter/_Base/a20151e/55ff7a0/4abab25/Build/GTest/Install/include/gmock/internal/gmock-pp.h
--- Installing: .hunter/_Base/a20151e/55ff7a0/4abab25/Build/GTest/Install/lib/libgmock.a
--- Installing: .hunter/_Base/a20151e/55ff7a0/4abab25/Build/GTest/Install/lib/libgmock_main.a
--- Installing: .hunter/_Base/a20151e/55ff7a0/4abab25/Build/GTest/Install/lib/pkgconfig/gmock.pc
--- Installing: .hunter/_Base/a20151e/55ff7a0/4abab25/Build/GTest/Install/lib/pkgconfig/gmock_main.pc
--- Installing: .hunter/_Base/a20151e/55ff7a0/4abab25/Build/GTest/Install/lib/cmake/GTest/GTestTargets.cmake
--- Installing: .hunter/_Base/a20151e/55ff7a0/4abab25/Build/GTest/Install/lib/cmake/GTest/GTestTargets-release.cmake
--- Installing: .hunter/_Base/a20151e/55ff7a0/4abab25/Build/GTest/Install/lib/cmake/GTest/GTestConfigVersion.cmake
--- Installing: .hunter/_Base/a20151e/55ff7a0/4abab25/Build/GTest/Install/lib/cmake/GTest/GTestConfig.cmake
--- Up-to-date: .hunter/_Base/a20151e/55ff7a0/4abab25/Build/GTest/Install/include
--- Installing: .hunter/_Base/a20151e/55ff7a0/4abab25/Build/GTest/Install/include/gtest
--- Installing: .hunter/_Base/a20151e/55ff7a0/4abab25/Build/GTest/Install/include/gtest/gtest-assertion-result.h
--- Installing: .hunter/_Base/a20151e/55ff7a0/4abab25/Build/GTest/Install/include/gtest/gtest-death-test.h
--- Installing: .hunter/_Base/a20151e/55ff7a0/4abab25/Build/GTest/Install/include/gtest/gtest-matchers.h
--- Installing: .hunter/_Base/a20151e/55ff7a0/4abab25/Build/GTest/Install/include/gtest/gtest-message.h
--- Installing: .hunter/_Base/a20151e/55ff7a0/4abab25/Build/GTest/Install/include/gtest/gtest-param-test.h
--- Installing: .hunter/_Base/a20151e/55ff7a0/4abab25/Build/GTest/Install/include/gtest/gtest-printers.h
--- Installing: .hunter/_Base/a20151e/55ff7a0/4abab25/Build/GTest/Install/include/gtest/gtest-spi.h
--- Installing: .hunter/_Base/a20151e/55ff7a0/4abab25/Build/GTest/Install/include/gtest/gtest-test-part.h
--- Installing: .hunter/_Base/a20151e/55ff7a0/4abab25/Build/GTest/Install/include/gtest/gtest-typed-test.h
--- Installing: .hunter/_Base/a20151e/55ff7a0/4abab25/Build/GTest/Install/include/gtest/gtest.h
--- Installing: .hunter/_Base/a20151e/55ff7a0/4abab25/Build/GTest/Install/include/gtest/gtest_pred_impl.h
--- Installing: .hunter/_Base/a20151e/55ff7a0/4abab25/Build/GTest/Install/include/gtest/gtest_prod.h
--- Installing: .hunter/_Base/a20151e/55ff7a0/4abab25/Build/GTest/Install/include/gtest/internal
--- Installing: .hunter/_Base/a20151e/55ff7a0/4abab25/Build/GTest/Install/include/gtest/internal/custom
--- Installing: .hunter/_Base/a20151e/55ff7a0/4abab25/Build/GTest/Install/include/gtest/internal/custom/README.md
--- Installing: .hunter/_Base/a20151e/55ff7a0/4abab25/Build/GTest/Install/include/gtest/internal/custom/gtest-port.h
--- Installing: .hunter/_Base/a20151e/55ff7a0/4abab25/Build/GTest/Install/include/gtest/internal/custom/gtest-printers.h
--- Installing: .hunter/_Base/a20151e/55ff7a0/4abab25/Build/GTest/Install/include/gtest/internal/custom/gtest.h
--- Installing: .hunter/_Base/a20151e/55ff7a0/4abab25/Build/GTest/Install/include/gtest/internal/gtest-death-test-internal.h
--- Installing: .hunter/_Base/a20151e/55ff7a0/4abab25/Build/GTest/Install/include/gtest/internal/gtest-filepath.h
--- Installing: .hunter/_Base/a20151e/55ff7a0/4abab25/Build/GTest/Install/include/gtest/internal/gtest-internal.h
--- Installing: .hunter/_Base/a20151e/55ff7a0/4abab25/Build/GTest/Install/include/gtest/internal/gtest-param-util.h
--- Installing: .hunter/_Base/a20151e/55ff7a0/4abab25/Build/GTest/Install/include/gtest/internal/gtest-port-arch.h
--- Installing: .hunter/_Base/a20151e/55ff7a0/4abab25/Build/GTest/Install/include/gtest/internal/gtest-port.h
--- Installing: .hunter/_Base/a20151e/55ff7a0/4abab25/Build/GTest/Install/include/gtest/internal/gtest-string.h
--- Installing: .hunter/_Base/a20151e/55ff7a0/4abab25/Build/GTest/Install/include/gtest/internal/gtest-type-util.h
--- Installing: .hunter/_Base/a20151e/55ff7a0/4abab25/Build/GTest/Install/lib/libgtest.a
--- Installing: .hunter/_Base/a20151e/55ff7a0/4abab25/Build/GTest/Install/lib/libgtest_main.a
--- Installing: .hunter/_Base/a20151e/55ff7a0/4abab25/Build/GTest/Install/lib/pkgconfig/gtest.pc
--- Installing: .hunter/_Base/a20151e/55ff7a0/4abab25/Build/GTest/Install/lib/pkgconfig/gtest_main.pc
-loading initial cache file .hunter/_Base/a20151e/55ff7a0/4abab25/Build/GTest/args.cmake
+-- Installing: /root/.hunter/_Base/a20151e/347e47c/4abab25/Build/GTest/Install/include
+-- Installing: /root/.hunter/_Base/a20151e/347e47c/4abab25/Build/GTest/Install/include/gmock
+-- Installing: /root/.hunter/_Base/a20151e/347e47c/4abab25/Build/GTest/Install/include/gmock/gmock-actions.h
+-- Installing: /root/.hunter/_Base/a20151e/347e47c/4abab25/Build/GTest/Install/include/gmock/gmock-cardinalities.h
+-- Installing: /root/.hunter/_Base/a20151e/347e47c/4abab25/Build/GTest/Install/include/gmock/gmock-function-mocker.h
+-- Installing: /root/.hunter/_Base/a20151e/347e47c/4abab25/Build/GTest/Install/include/gmock/gmock-matchers.h
+-- Installing: /root/.hunter/_Base/a20151e/347e47c/4abab25/Build/GTest/Install/include/gmock/gmock-more-actions.h
+-- Installing: /root/.hunter/_Base/a20151e/347e47c/4abab25/Build/GTest/Install/include/gmock/gmock-more-matchers.h
+-- Installing: /root/.hunter/_Base/a20151e/347e47c/4abab25/Build/GTest/Install/include/gmock/gmock-nice-strict.h
+-- Installing: /root/.hunter/_Base/a20151e/347e47c/4abab25/Build/GTest/Install/include/gmock/gmock-spec-builders.h
+-- Installing: /root/.hunter/_Base/a20151e/347e47c/4abab25/Build/GTest/Install/include/gmock/gmock.h
+-- Installing: /root/.hunter/_Base/a20151e/347e47c/4abab25/Build/GTest/Install/include/gmock/internal
+-- Installing: /root/.hunter/_Base/a20151e/347e47c/4abab25/Build/GTest/Install/include/gmock/internal/custom
+-- Installing: /root/.hunter/_Base/a20151e/347e47c/4abab25/Build/GTest/Install/include/gmock/internal/custom/README.md
+-- Installing: /root/.hunter/_Base/a20151e/347e47c/4abab25/Build/GTest/Install/include/gmock/internal/custom/gmock-generated-actions.h
+-- Installing: /root/.hunter/_Base/a20151e/347e47c/4abab25/Build/GTest/Install/include/gmock/internal/custom/gmock-matchers.h
+-- Installing: /root/.hunter/_Base/a20151e/347e47c/4abab25/Build/GTest/Install/include/gmock/internal/custom/gmock-port.h
+-- Installing: /root/.hunter/_Base/a20151e/347e47c/4abab25/Build/GTest/Install/include/gmock/internal/gmock-internal-utils.h
+-- Installing: /root/.hunter/_Base/a20151e/347e47c/4abab25/Build/GTest/Install/include/gmock/internal/gmock-port.h
+-- Installing: /root/.hunter/_Base/a20151e/347e47c/4abab25/Build/GTest/Install/include/gmock/internal/gmock-pp.h
+-- Installing: /root/.hunter/_Base/a20151e/347e47c/4abab25/Build/GTest/Install/lib/libgmock.a
+-- Installing: /root/.hunter/_Base/a20151e/347e47c/4abab25/Build/GTest/Install/lib/libgmock_main.a
+-- Installing: /root/.hunter/_Base/a20151e/347e47c/4abab25/Build/GTest/Install/lib/pkgconfig/gmock.pc
+-- Installing: /root/.hunter/_Base/a20151e/347e47c/4abab25/Build/GTest/Install/lib/pkgconfig/gmock_main.pc
+-- Installing: /root/.hunter/_Base/a20151e/347e47c/4abab25/Build/GTest/Install/lib/cmake/GTest/GTestTargets.cmake
+-- Installing: /root/.hunter/_Base/a20151e/347e47c/4abab25/Build/GTest/Install/lib/cmake/GTest/GTestTargets-release.cmake
+-- Installing: /root/.hunter/_Base/a20151e/347e47c/4abab25/Build/GTest/Install/lib/cmake/GTest/GTestConfigVersion.cmake
+-- Installing: /root/.hunter/_Base/a20151e/347e47c/4abab25/Build/GTest/Install/lib/cmake/GTest/GTestConfig.cmake
+-- Up-to-date: /root/.hunter/_Base/a20151e/347e47c/4abab25/Build/GTest/Install/include
+-- Installing: /root/.hunter/_Base/a20151e/347e47c/4abab25/Build/GTest/Install/include/gtest
+-- Installing: /root/.hunter/_Base/a20151e/347e47c/4abab25/Build/GTest/Install/include/gtest/gtest-assertion-result.h
+-- Installing: /root/.hunter/_Base/a20151e/347e47c/4abab25/Build/GTest/Install/include/gtest/gtest-death-test.h
+-- Installing: /root/.hunter/_Base/a20151e/347e47c/4abab25/Build/GTest/Install/include/gtest/gtest-matchers.h
+-- Installing: /root/.hunter/_Base/a20151e/347e47c/4abab25/Build/GTest/Install/include/gtest/gtest-message.h
+-- Installing: /root/.hunter/_Base/a20151e/347e47c/4abab25/Build/GTest/Install/include/gtest/gtest-param-test.h
+-- Installing: /root/.hunter/_Base/a20151e/347e47c/4abab25/Build/GTest/Install/include/gtest/gtest-printers.h
+-- Installing: /root/.hunter/_Base/a20151e/347e47c/4abab25/Build/GTest/Install/include/gtest/gtest-spi.h
+-- Installing: /root/.hunter/_Base/a20151e/347e47c/4abab25/Build/GTest/Install/include/gtest/gtest-test-part.h
+-- Installing: /root/.hunter/_Base/a20151e/347e47c/4abab25/Build/GTest/Install/include/gtest/gtest-typed-test.h
+-- Installing: /root/.hunter/_Base/a20151e/347e47c/4abab25/Build/GTest/Install/include/gtest/gtest.h
+-- Installing: /root/.hunter/_Base/a20151e/347e47c/4abab25/Build/GTest/Install/include/gtest/gtest_pred_impl.h
+-- Installing: /root/.hunter/_Base/a20151e/347e47c/4abab25/Build/GTest/Install/include/gtest/gtest_prod.h
+-- Installing: /root/.hunter/_Base/a20151e/347e47c/4abab25/Build/GTest/Install/include/gtest/internal
+-- Installing: /root/.hunter/_Base/a20151e/347e47c/4abab25/Build/GTest/Install/include/gtest/internal/custom
+-- Installing: /root/.hunter/_Base/a20151e/347e47c/4abab25/Build/GTest/Install/include/gtest/internal/custom/README.md
+-- Installing: /root/.hunter/_Base/a20151e/347e47c/4abab25/Build/GTest/Install/include/gtest/internal/custom/gtest-port.h
+-- Installing: /root/.hunter/_Base/a20151e/347e47c/4abab25/Build/GTest/Install/include/gtest/internal/custom/gtest-printers.h
+-- Installing: /root/.hunter/_Base/a20151e/347e47c/4abab25/Build/GTest/Install/include/gtest/internal/custom/gtest.h
+-- Installing: /root/.hunter/_Base/a20151e/347e47c/4abab25/Build/GTest/Install/include/gtest/internal/gtest-death-test-internal.h
+-- Installing: /root/.hunter/_Base/a20151e/347e47c/4abab25/Build/GTest/Install/include/gtest/internal/gtest-filepath.h
+-- Installing: /root/.hunter/_Base/a20151e/347e47c/4abab25/Build/GTest/Install/include/gtest/internal/gtest-internal.h
+-- Installing: /root/.hunter/_Base/a20151e/347e47c/4abab25/Build/GTest/Install/include/gtest/internal/gtest-param-util.h
+-- Installing: /root/.hunter/_Base/a20151e/347e47c/4abab25/Build/GTest/Install/include/gtest/internal/gtest-port-arch.h
+-- Installing: /root/.hunter/_Base/a20151e/347e47c/4abab25/Build/GTest/Install/include/gtest/internal/gtest-port.h
+-- Installing: /root/.hunter/_Base/a20151e/347e47c/4abab25/Build/GTest/Install/include/gtest/internal/gtest-string.h
+-- Installing: /root/.hunter/_Base/a20151e/347e47c/4abab25/Build/GTest/Install/include/gtest/internal/gtest-type-util.h
+-- Installing: /root/.hunter/_Base/a20151e/347e47c/4abab25/Build/GTest/Install/lib/libgtest.a
+-- Installing: /root/.hunter/_Base/a20151e/347e47c/4abab25/Build/GTest/Install/lib/libgtest_main.a
+-- Installing: /root/.hunter/_Base/a20151e/347e47c/4abab25/Build/GTest/Install/lib/pkgconfig/gtest.pc
+-- Installing: /root/.hunter/_Base/a20151e/347e47c/4abab25/Build/GTest/Install/lib/pkgconfig/gtest_main.pc
+loading initial cache file /root/.hunter/_Base/a20151e/347e47c/4abab25/Build/GTest/args.cmake
 [ 50%] Completed 'GTest-Release'
 [ 50%] Built target GTest-Release
 [ 56%] Creating directories for 'GTest-Debug'
 [ 62%] Performing download step (download, verify and extract) for 'GTest-Debug'
 -- verifying file...
-       file='.hunter/_Base/Download/GTest/1.14.0/2b28c2a/v1.14.0.tar.gz'
+       file='/root/.hunter/_Base/Download/GTest/1.14.0/2b28c2a/v1.14.0.tar.gz'
 -- File already exists and hash match (skip download):
-  file='.hunter/_Base/Download/GTest/1.14.0/2b28c2a/v1.14.0.tar.gz'
+  file='/root/.hunter/_Base/Download/GTest/1.14.0/2b28c2a/v1.14.0.tar.gz'
   SHA1='2b28c2a3a30d86b1759543ef61fac3c4d69f8c4c'
 -- extracting...
-     src='.hunter/_Base/Download/GTest/1.14.0/2b28c2a/v1.14.0.tar.gz'
-     dst='.hunter/_Base/a20151e/55ff7a0/4abab25/Build/GTest/Source'
+     src='/root/.hunter/_Base/Download/GTest/1.14.0/2b28c2a/v1.14.0.tar.gz'
+     dst='/root/.hunter/_Base/a20151e/347e47c/4abab25/Build/GTest/Source'
 -- extracting... [tar xfz]
 -- extracting... [analysis]
 -- extracting... [rename]
@@ -731,30 +1404,31 @@ loading initial cache file .hunter/_Base/a20151e/55ff7a0/4abab25/Build/GTest/arg
 [ 68%] No update step for 'GTest-Debug'
 [ 75%] No patch step for 'GTest-Debug'
 [ 81%] Performing configure step for 'GTest-Debug'
-loading initial cache file .hunter/_Base/a20151e/55ff7a0/4abab25/cache.cmake
-loading initial cache file .hunter/_Base/a20151e/55ff7a0/4abab25/Build/GTest/args.cmake
--- [polly] Used toolchain: clang / c++14 support
--- The C compiler identification is Clang 17.0.6
--- The CXX compiler identification is Clang 17.0.6
--- Check for working C compiler: /sbin/clang - skipped
+loading initial cache file /root/.hunter/_Base/a20151e/347e47c/4abab25/cache.cmake
+loading initial cache file /root/.hunter/_Base/a20151e/347e47c/4abab25/Build/GTest/args.cmake
+-- The C compiler identification is GNU 11.4.0
+-- The CXX compiler identification is GNU 11.4.0
+-- Check for working C compiler: /usr/bin/cc - skipped
 -- Detecting C compile features
 -- Detecting C compile features - done
--- Check for working CXX compiler: /sbin/clang++ - skipped
+-- Check for working CXX compiler: /usr/bin/c++ - skipped
 -- Detecting CXX compile features
 -- Detecting CXX compile features - done
--- Found Python3: /sbin/python3.12 (found version "3.12.3") found components: Interpreter
+-- Found Python3: /usr/bin/python3.10 (found version "3.10.12") found components: Interpreter 
+-- Looking for pthread.h
+-- Looking for pthread.h - found
 -- Performing Test CMAKE_HAVE_LIBC_PTHREAD
 -- Performing Test CMAKE_HAVE_LIBC_PTHREAD - Success
--- Found Threads: TRUE
--- Configuring done (0.5s)
--- Generating done (0.0s)
--- Build files have been written to: .hunter/_Base/a20151e/55ff7a0/4abab25/Build/GTest/Build/GTest-Debug-prefix/src/GTest-Debug-build
+-- Found Threads: TRUE  
+-- Configuring done
+-- Generating done
+-- Build files have been written to: /root/.hunter/_Base/a20151e/347e47c/4abab25/Build/GTest/Build/GTest-Debug-prefix/src/GTest-Debug-build
 [ 87%] Performing build step for 'GTest-Debug'
 [ 12%] Building CXX object googletest/CMakeFiles/gtest.dir/src/gtest-all.cc.o
 [ 25%] Linking CXX static library ../lib/libgtestd.a
 [ 25%] Built target gtest
-[ 50%] Building CXX object googletest/CMakeFiles/gtest_main.dir/src/gtest_main.cc.o
 [ 50%] Building CXX object googlemock/CMakeFiles/gmock.dir/src/gmock-all.cc.o
+[ 50%] Building CXX object googletest/CMakeFiles/gtest_main.dir/src/gtest_main.cc.o
 [ 62%] Linking CXX static library ../lib/libgtest_maind.a
 [ 62%] Built target gtest_main
 [ 75%] Linking CXX static library ../lib/libgmockd.a
@@ -763,122 +1437,248 @@ loading initial cache file .hunter/_Base/a20151e/55ff7a0/4abab25/Build/GTest/arg
 [100%] Linking CXX static library ../lib/libgmock_maind.a
 [100%] Built target gmock_main
 [ 93%] Performing install step for 'GTest-Debug'
--- Up-to-date: .hunter/_Base/a20151e/55ff7a0/4abab25/Build/GTest/Install/include
--- Up-to-date: .hunter/_Base/a20151e/55ff7a0/4abab25/Build/GTest/Install/include/gmock
--- Installing: .hunter/_Base/a20151e/55ff7a0/4abab25/Build/GTest/Install/include/gmock/gmock-actions.h
--- Installing: .hunter/_Base/a20151e/55ff7a0/4abab25/Build/GTest/Install/include/gmock/gmock-cardinalities.h
--- Installing: .hunter/_Base/a20151e/55ff7a0/4abab25/Build/GTest/Install/include/gmock/gmock-function-mocker.h
--- Installing: .hunter/_Base/a20151e/55ff7a0/4abab25/Build/GTest/Install/include/gmock/gmock-matchers.h
--- Installing: .hunter/_Base/a20151e/55ff7a0/4abab25/Build/GTest/Install/include/gmock/gmock-more-actions.h
--- Installing: .hunter/_Base/a20151e/55ff7a0/4abab25/Build/GTest/Install/include/gmock/gmock-more-matchers.h
--- Installing: .hunter/_Base/a20151e/55ff7a0/4abab25/Build/GTest/Install/include/gmock/gmock-nice-strict.h
--- Installing: .hunter/_Base/a20151e/55ff7a0/4abab25/Build/GTest/Install/include/gmock/gmock-spec-builders.h
--- Installing: .hunter/_Base/a20151e/55ff7a0/4abab25/Build/GTest/Install/include/gmock/gmock.h
--- Up-to-date: .hunter/_Base/a20151e/55ff7a0/4abab25/Build/GTest/Install/include/gmock/internal
--- Up-to-date: .hunter/_Base/a20151e/55ff7a0/4abab25/Build/GTest/Install/include/gmock/internal/custom
--- Installing: .hunter/_Base/a20151e/55ff7a0/4abab25/Build/GTest/Install/include/gmock/internal/custom/README.md
--- Installing: .hunter/_Base/a20151e/55ff7a0/4abab25/Build/GTest/Install/include/gmock/internal/custom/gmock-generated-actions.h
--- Installing: .hunter/_Base/a20151e/55ff7a0/4abab25/Build/GTest/Install/include/gmock/internal/custom/gmock-matchers.h
--- Installing: .hunter/_Base/a20151e/55ff7a0/4abab25/Build/GTest/Install/include/gmock/internal/custom/gmock-port.h
--- Installing: .hunter/_Base/a20151e/55ff7a0/4abab25/Build/GTest/Install/include/gmock/internal/gmock-internal-utils.h
-.hunter/_Base/a20151e/55ff7a0/4abab25/Build/GTest/Install/include/gmock/internal/gmock-port.h
--- Installing: .hunter/_Base/a20151e/55ff7a0/4abab25/Build/GTest/Install/include/gmock/internal/gmock-pp.h
--- Installing: .hunter/_Base/a20151e/55ff7a0/4abab25/Build/GTest/Install/lib/libgmockd.a
--- Installing: .hunter/_Base/a20151e/55ff7a0/4abab25/Build/GTest/Install/lib/libgmock_maind.a
--- Installing: .hunter/_Base/a20151e/55ff7a0/4abab25/Build/GTest/Install/lib/pkgconfig/gmock.pc
--- Installing: .hunter/_Base/a20151e/55ff7a0/4abab25/Build/GTest/Install/lib/pkgconfig/gmock_main.pc
-.hunter/_Base/a20151e/55ff7a0/4abab25/Build/GTest/Install/lib/cmake/GTest/GTestTargets.cmake
--- Installing: .hunter/_Base/a20151e/55ff7a0/4abab25/Build/GTest/Install/lib/cmake/GTest/GTestTargets-debug.cmake
--- Installing: .hunter/_Base/a20151e/55ff7a0/4abab25/Build/GTest/Install/lib/cmake/GTest/GTestConfigVersion.cmake
--- Installing: .hunter/_Base/a20151e/55ff7a0/4abab25/Build/GTest/Install/lib/cmake/GTest/GTestConfig.cmake
--- Up-to-date: .hunter/_Base/a20151e/55ff7a0/4abab25/Build/GTest/Install/include
--- Up-to-date: .hunter/_Base/a20151e/55ff7a0/4abab25/Build/GTest/Install/include/gtest
--- Installing: .hunter/_Base/a20151e/55ff7a0/4abab25/Build/GTest/Install/include/gtest/gtest-assertion-result.h
--- Installing: .hunter/_Base/a20151e/55ff7a0/4abab25/Build/GTest/Install/include/gtest/gtest-death-test.h
--- Installing: .hunter/_Base/a20151e/55ff7a0/4abab25/Build/GTest/Install/include/gtest/gtest-matchers.h
--- Installing: .hunter/_Base/a20151e/55ff7a0/4abab25/Build/GTest/Install/include/gtest/gtest-message.h
--- Installing: .hunter/_Base/a20151e/55ff7a0/4abab25/Build/GTest/Install/include/gtest/gtest-param-test.h
--- Installing: .hunter/_Base/a20151e/55ff7a0/4abab25/Build/GTest/Install/include/gtest/gtest-printers.h
--- Installing: .hunter/_Base/a20151e/55ff7a0/4abab25/Build/GTest/Install/include/gtest/gtest-spi.h
--- Installing: .hunter/_Base/a20151e/55ff7a0/4abab25/Build/GTest/Install/include/gtest/gtest-test-part.h
--- Installing: .hunter/_Base/a20151e/55ff7a0/4abab25/Build/GTest/Install/include/gtest/gtest-typed-test.h
--- Installing: .hunter/_Base/a20151e/55ff7a0/4abab25/Build/GTest/Install/include/gtest/gtest.h
--- Installing: .hunter/_Base/a20151e/55ff7a0/4abab25/Build/GTest/Install/include/gtest/gtest_pred_impl.h
--- Installing: .hunter/_Base/a20151e/55ff7a0/4abab25/Build/GTest/Install/include/gtest/gtest_prod.h
--- Up-to-date: .hunter/_Base/a20151e/55ff7a0/4abab25/Build/GTest/Install/include/gtest/internal
--- Up-to-date: .hunter/_Base/a20151e/55ff7a0/4abab25/Build/GTest/Install/include/gtest/internal/custom
--- Installing: .hunter/_Base/a20151e/55ff7a0/4abab25/Build/GTest/Install/include/gtest/internal/custom/README.md
--- Installing: .hunter/_Base/a20151e/55ff7a0/4abab25/Build/GTest/Install/include/gtest/internal/custom/gtest-port.h
--- Installing: .hunter/_Base/a20151e/55ff7a0/4abab25/Build/GTest/Install/include/gtest/internal/custom/gtest-printers.h
--- Installing: .hunter/_Base/a20151e/55ff7a0/4abab25/Build/GTest/Install/include/gtest/internal/custom/gtest.h
--- Installing: .hunter/_Base/a20151e/55ff7a0/4abab25/Build/GTest/Install/include/gtest/internal/gtest-death-test-internal.h
--- Installing: .hunter/_Base/a20151e/55ff7a0/4abab25/Build/GTest/Install/include/gtest/internal/gtest-filepath.h
--- Installing: .hunter/_Base/a20151e/55ff7a0/4abab25/Build/GTest/Install/include/gtest/internal/gtest-internal.h
--- Installing: .hunter/_Base/a20151e/55ff7a0/4abab25/Build/GTest/Install/include/gtest/internal/gtest-param-util.h
--- Installing: .hunter/_Base/a20151e/55ff7a0/4abab25/Build/GTest/Install/include/gtest/internal/gtest-port-arch.h
--- Installing: .hunter/_Base/a20151e/55ff7a0/4abab25/Build/GTest/Install/include/gtest/internal/gtest-port.h
--- Installing: .hunter/_Base/a20151e/55ff7a0/4abab25/Build/GTest/Install/include/gtest/internal/gtest-string.h
--- Installing: .hunter/_Base/a20151e/55ff7a0/4abab25/Build/GTest/Install/include/gtest/internal/gtest-type-util.h
--- Installing: .hunter/_Base/a20151e/55ff7a0/4abab25/Build/GTest/Install/lib/libgtestd.a
--- Installing: .hunter/_Base/a20151e/55ff7a0/4abab25/Build/GTest/Install/lib/libgtest_maind.a
--- Installing: .hunter/_Base/a20151e/55ff7a0/4abab25/Build/GTest/Install/lib/pkgconfig/gtest.pc
--- Installing: .hunter/_Base/a20151e/55ff7a0/4abab25/Build/GTest/Install/lib/pkgconfig/gtest_main.pc
-loading initial cache file .hunter/_Base/a20151e/55ff7a0/4abab25/Build/GTest/args.cmake
+-- Up-to-date: /root/.hunter/_Base/a20151e/347e47c/4abab25/Build/GTest/Install/include
+-- Up-to-date: /root/.hunter/_Base/a20151e/347e47c/4abab25/Build/GTest/Install/include/gmock
+-- Up-to-date: /root/.hunter/_Base/a20151e/347e47c/4abab25/Build/GTest/Install/include/gmock/gmock-actions.h
+-- Up-to-date: /root/.hunter/_Base/a20151e/347e47c/4abab25/Build/GTest/Install/include/gmock/gmock-cardinalities.h
+-- Up-to-date: /root/.hunter/_Base/a20151e/347e47c/4abab25/Build/GTest/Install/include/gmock/gmock-function-mocker.h
+-- Up-to-date: /root/.hunter/_Base/a20151e/347e47c/4abab25/Build/GTest/Install/include/gmock/gmock-matchers.h
+-- Up-to-date: /root/.hunter/_Base/a20151e/347e47c/4abab25/Build/GTest/Install/include/gmock/gmock-more-actions.h
+-- Up-to-date: /root/.hunter/_Base/a20151e/347e47c/4abab25/Build/GTest/Install/include/gmock/gmock-more-matchers.h
+-- Up-to-date: /root/.hunter/_Base/a20151e/347e47c/4abab25/Build/GTest/Install/include/gmock/gmock-nice-strict.h
+-- Up-to-date: /root/.hunter/_Base/a20151e/347e47c/4abab25/Build/GTest/Install/include/gmock/gmock-spec-builders.h
+-- Up-to-date: /root/.hunter/_Base/a20151e/347e47c/4abab25/Build/GTest/Install/include/gmock/gmock.h
+-- Up-to-date: /root/.hunter/_Base/a20151e/347e47c/4abab25/Build/GTest/Install/include/gmock/internal
+-- Up-to-date: /root/.hunter/_Base/a20151e/347e47c/4abab25/Build/GTest/Install/include/gmock/internal/custom
+-- Up-to-date: /root/.hunter/_Base/a20151e/347e47c/4abab25/Build/GTest/Install/include/gmock/internal/custom/README.md
+-- Up-to-date: /root/.hunter/_Base/a20151e/347e47c/4abab25/Build/GTest/Install/include/gmock/internal/custom/gmock-generated-actions.h
+-- Up-to-date: /root/.hunter/_Base/a20151e/347e47c/4abab25/Build/GTest/Install/include/gmock/internal/custom/gmock-matchers.h
+-- Up-to-date: /root/.hunter/_Base/a20151e/347e47c/4abab25/Build/GTest/Install/include/gmock/internal/custom/gmock-port.h
+-- Up-to-date: /root/.hunter/_Base/a20151e/347e47c/4abab25/Build/GTest/Install/include/gmock/internal/gmock-internal-utils.h
+-- Up-to-date: /root/.hunter/_Base/a20151e/347e47c/4abab25/Build/GTest/Install/include/gmock/internal/gmock-port.h
+-- Up-to-date: /root/.hunter/_Base/a20151e/347e47c/4abab25/Build/GTest/Install/include/gmock/internal/gmock-pp.h
+-- Installing: /root/.hunter/_Base/a20151e/347e47c/4abab25/Build/GTest/Install/lib/libgmockd.a
+-- Installing: /root/.hunter/_Base/a20151e/347e47c/4abab25/Build/GTest/Install/lib/libgmock_maind.a
+-- Installing: /root/.hunter/_Base/a20151e/347e47c/4abab25/Build/GTest/Install/lib/pkgconfig/gmock.pc
+-- Installing: /root/.hunter/_Base/a20151e/347e47c/4abab25/Build/GTest/Install/lib/pkgconfig/gmock_main.pc
+-- Installing: /root/.hunter/_Base/a20151e/347e47c/4abab25/Build/GTest/Install/lib/cmake/GTest/GTestTargets.cmake
+-- Installing: /root/.hunter/_Base/a20151e/347e47c/4abab25/Build/GTest/Install/lib/cmake/GTest/GTestTargets-debug.cmake
+-- Installing: /root/.hunter/_Base/a20151e/347e47c/4abab25/Build/GTest/Install/lib/cmake/GTest/GTestConfigVersion.cmake
+-- Installing: /root/.hunter/_Base/a20151e/347e47c/4abab25/Build/GTest/Install/lib/cmake/GTest/GTestConfig.cmake
+-- Up-to-date: /root/.hunter/_Base/a20151e/347e47c/4abab25/Build/GTest/Install/include
+-- Up-to-date: /root/.hunter/_Base/a20151e/347e47c/4abab25/Build/GTest/Install/include/gtest
+-- Up-to-date: /root/.hunter/_Base/a20151e/347e47c/4abab25/Build/GTest/Install/include/gtest/gtest-assertion-result.h
+-- Up-to-date: /root/.hunter/_Base/a20151e/347e47c/4abab25/Build/GTest/Install/include/gtest/gtest-death-test.h
+-- Up-to-date: /root/.hunter/_Base/a20151e/347e47c/4abab25/Build/GTest/Install/include/gtest/gtest-matchers.h
+-- Up-to-date: /root/.hunter/_Base/a20151e/347e47c/4abab25/Build/GTest/Install/include/gtest/gtest-message.h
+-- Up-to-date: /root/.hunter/_Base/a20151e/347e47c/4abab25/Build/GTest/Install/include/gtest/gtest-param-test.h
+-- Up-to-date: /root/.hunter/_Base/a20151e/347e47c/4abab25/Build/GTest/Install/include/gtest/gtest-printers.h
+-- Up-to-date: /root/.hunter/_Base/a20151e/347e47c/4abab25/Build/GTest/Install/include/gtest/gtest-spi.h
+-- Up-to-date: /root/.hunter/_Base/a20151e/347e47c/4abab25/Build/GTest/Install/include/gtest/gtest-test-part.h
+-- Up-to-date: /root/.hunter/_Base/a20151e/347e47c/4abab25/Build/GTest/Install/include/gtest/gtest-typed-test.h
+-- Up-to-date: /root/.hunter/_Base/a20151e/347e47c/4abab25/Build/GTest/Install/include/gtest/gtest.h
+-- Up-to-date: /root/.hunter/_Base/a20151e/347e47c/4abab25/Build/GTest/Install/include/gtest/gtest_pred_impl.h
+-- Up-to-date: /root/.hunter/_Base/a20151e/347e47c/4abab25/Build/GTest/Install/include/gtest/gtest_prod.h
+-- Up-to-date: /root/.hunter/_Base/a20151e/347e47c/4abab25/Build/GTest/Install/include/gtest/internal
+-- Up-to-date: /root/.hunter/_Base/a20151e/347e47c/4abab25/Build/GTest/Install/include/gtest/internal/custom
+-- Up-to-date: /root/.hunter/_Base/a20151e/347e47c/4abab25/Build/GTest/Install/include/gtest/internal/custom/README.md
+-- Up-to-date: /root/.hunter/_Base/a20151e/347e47c/4abab25/Build/GTest/Install/include/gtest/internal/custom/gtest-port.h
+-- Up-to-date: /root/.hunter/_Base/a20151e/347e47c/4abab25/Build/GTest/Install/include/gtest/internal/custom/gtest-printers.h
+-- Up-to-date: /root/.hunter/_Base/a20151e/347e47c/4abab25/Build/GTest/Install/include/gtest/internal/custom/gtest.h
+-- Up-to-date: /root/.hunter/_Base/a20151e/347e47c/4abab25/Build/GTest/Install/include/gtest/internal/gtest-death-test-internal.h
+-- Up-to-date: /root/.hunter/_Base/a20151e/347e47c/4abab25/Build/GTest/Install/include/gtest/internal/gtest-filepath.h
+-- Up-to-date: /root/.hunter/_Base/a20151e/347e47c/4abab25/Build/GTest/Install/include/gtest/internal/gtest-internal.h
+-- Up-to-date: /root/.hunter/_Base/a20151e/347e47c/4abab25/Build/GTest/Install/include/gtest/internal/gtest-param-util.h
+-- Up-to-date: /root/.hunter/_Base/a20151e/347e47c/4abab25/Build/GTest/Install/include/gtest/internal/gtest-port-arch.h
+-- Up-to-date: /root/.hunter/_Base/a20151e/347e47c/4abab25/Build/GTest/Install/include/gtest/internal/gtest-port.h
+-- Up-to-date: /root/.hunter/_Base/a20151e/347e47c/4abab25/Build/GTest/Install/include/gtest/internal/gtest-string.h
+-- Up-to-date: /root/.hunter/_Base/a20151e/347e47c/4abab25/Build/GTest/Install/include/gtest/internal/gtest-type-util.h
+-- Installing: /root/.hunter/_Base/a20151e/347e47c/4abab25/Build/GTest/Install/lib/libgtestd.a
+-- Installing: /root/.hunter/_Base/a20151e/347e47c/4abab25/Build/GTest/Install/lib/libgtest_maind.a
+-- Installing: /root/.hunter/_Base/a20151e/347e47c/4abab25/Build/GTest/Install/lib/pkgconfig/gtest.pc
+-- Installing: /root/.hunter/_Base/a20151e/347e47c/4abab25/Build/GTest/Install/lib/pkgconfig/gtest_main.pc
+loading initial cache file /root/.hunter/_Base/a20151e/347e47c/4abab25/Build/GTest/args.cmake
 [100%] Completed 'GTest-Debug'
 [100%] Built target GTest-Debug
--- [hunter] Build step successful (dir: .hunter/_Base/a20151e/55ff7a0/4abab25/Build/GTest)
--- [hunter] Cache saved: .hunter/_Base/Cache/raw/90ce999c9a8b42022d9d76b655526430806a0a04.tar.bz2
+-- [hunter] Build step successful (dir: /root/.hunter/_Base/a20151e/347e47c/4abab25/Build/GTest)
+-- [hunter] Cache saved: /root/.hunter/_Base/Cache/raw/cf726fc130cda69492c989041e98f1820afbea4b.tar.bz2
+-- Looking for pthread.h
+-- Looking for pthread.h - found
 -- Performing Test CMAKE_HAVE_LIBC_PTHREAD
 -- Performing Test CMAKE_HAVE_LIBC_PTHREAD - Success
--- Found Threads: TRUE
--- Configuring done (15.8s)
--- Generating done (0.0s)
--- Build files have been written to: Projects/TIMP/Workbench/lab07/_builds/clang-cxx14
-Execute command: [
-  `cmake`
-  `--build`
-  `Projects/TIMP/Workbench/lab07/_builds/clang-cxx14`
-  `--`
-]
-
-[Projects/TIMP/Workbench/lab07]> "cmake" "--build" "Projects/TIMP/Workbench/lab07/_builds/clang-cxx14" "--"
-
+-- Found Threads: TRUE  
+-- Configuring done
+-- Generating done
+-- Build files have been written to: /print/_build
+ ---> Removed intermediate container d9070a95c7ae
+ ---> 23d98cb6d2a7
+Step 7/12 : RUN cmake --build _build
+ ---> Running in 4f579f1aee54
 [ 25%] Building CXX object CMakeFiles/print.dir/sources/print.cpp.o
 [ 50%] Linking CXX static library libprint.a
 [ 50%] Built target print
 [ 75%] Building CXX object CMakeFiles/demo.dir/demo/main.cpp.o
 [100%] Linking CXX executable demo
 [100%] Built target demo
--
-Log saved: Projects/TIMP/Workbench/lab07/_logs/polly/clang-cxx14/log.txt
--
-Generate: 0:00:16.830440s
-Build: 0:00:01.529244s
--
-Total: 0:00:18.360002s
--
-SUCCESS
+ ---> Removed intermediate container 4f579f1aee54
+ ---> d398ac8b88a3
+Step 8/12 : RUN cmake --build _build --target install
+ ---> Running in 77d6ab10874d
+Consolidate compiler generated dependencies of target print
+[ 50%] Built target print
+Consolidate compiler generated dependencies of target demo
+[100%] Built target demo
+Install the project...
+-- Install configuration: "Release"
+-- Installing: /print/_install/bin/demo
+-- Installing: /print/_install/lib/libprint.a
+-- Installing: /print/_install/include
+-- Installing: /print/_install/include/print.hpp
+-- Installing: /print/_install/cmake/print-config.cmake
+-- Installing: /print/_install/cmake/print-config-release.cmake
+ ---> Removed intermediate container 77d6ab10874d
+ ---> 41ba0ea4f2d9
+Step 9/12 : ENV LOG_PATH /home/logs/log.txt
+ ---> Running in bca78f8c1e12
+ ---> Removed intermediate container bca78f8c1e12
+ ---> de69496e2fc2
+Step 10/12 : VOLUME /home/logs
+ ---> Running in 5066bd1bfe84
+ ---> Removed intermediate container 5066bd1bfe84
+ ---> 55e227557eb6
+Step 11/12 : WORKDIR _install/bin
+ ---> Running in f45d6024a0ef
+ ---> Removed intermediate container f45d6024a0ef
+ ---> 90cb0bdeb27e
+Step 12/12 : ENTRYPOINT ./demo
+ ---> Running in 525da2da8c46
+ ---> Removed intermediate container 525da2da8c46
+ ---> e31d8e297040
+Successfully built e31d8e297040
+Successfully tagged logger:latest
 ```
 
 ```sh
-❯ git add .                                                    
-❯ git commit -m "Added and configured Hunter"         
-[main 769c333] Added and configured Hunter
- 7 files changed, 608 insertions(+), 4 deletions(-)
- create mode 100644 cmake/HunterGate.cmake
- create mode 100644 demo/main.cpp
- create mode 100644 tests/test1.cpp
- delete mode 160000 third-party/gtest
- create mode 160000 tools/polly
+❯ sudo docker images                                
+REPOSITORY   TAG       IMAGE ID       CREATED         SIZE
+logger       latest    e31d8e297040   2 minutes ago   1.23GB
+ubuntu       22.04     52882761a72a   12 days ago     77.9MB
+```
 
+```sh
+❯ sudo docker run -it -v "$(pwd)/logs/:/home/logs/" logger 
+text1
+text2
+text3
+^C%
+```
+
+```sh
+❯ sudo docker inspect logger                                                   
+[
+    {
+        "Id": "sha256:78c84ca48063977e24db2ac59d6f3802c4eb35a76e610c182287f8cb26812823",
+        "RepoTags": [
+            "logger:latest"
+        ],
+        "RepoDigests": [],
+        "Parent": "sha256:f3f7c6928a97012fd791b16de4bd5a64a6a96b9e6f604eabed650a8c6e7e6189",
+        "Comment": "",
+        "Created": "2024-05-10T11:45:06.544678465Z",
+        "DockerVersion": "26.1.2",
+        "Author": "",
+        "Config": {
+            "Hostname": "",
+            "Domainname": "",
+            "User": "",
+            "AttachStdin": false,
+            "AttachStdout": false,
+            "AttachStderr": false,
+            "Tty": false,
+            "OpenStdin": false,
+            "StdinOnce": false,
+            "Env": [
+                "PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin",
+                "LOG_PATH=/home/logs/log.txt"
+            ],
+            "Cmd": null,
+            "Image": "sha256:f3f7c6928a97012fd791b16de4bd5a64a6a96b9e6f604eabed650a8c6e7e6189",
+            "Volumes": {
+                "/home/logs": {}
+            },
+            "WorkingDir": "/print/_install/bin",
+            "Entrypoint": [
+                "/bin/sh",
+                "-c",
+                "./demo"
+            ],
+            "OnBuild": null,
+            "Labels": {
+                "org.opencontainers.image.ref.name": "ubuntu",
+                "org.opencontainers.image.version": "22.04"
+            }
+        },
+        "Architecture": "amd64",
+        "Os": "linux",
+        "Size": 1233870179,
+        "GraphDriver": {
+            "Data": {
+                "LowerDir": "/var/lib/docker/overlay2/873b3855b89dbf7fd7d26204f004db547f46074d3e7d41fe5d3d42ddc8fc7cf7/diff:/var/lib/docker/overlay2/4bd5bf3980fcabbe87cd771575b2d587cb2298d8f8d469f7d108bba111238875/diff:/var/lib/docker/overlay2/d799879a155aeede16ddb56b489e769afb641a446769c4d23c2c13b3fb385c17/diff:/var/lib/docker/overlay2/71edb1bdf4b45c300720b923b7aab3d554926f8249fe14867a555513f682c38c/diff:/var/lib/docker/overlay2/e7c0852ae1f35d458613ca44f6275eec23add36865d0e94fdc0528b82289e44a/diff:/var/lib/docker/overlay2/fc19b607b59410acf1e8ac709b978007efe79c242937076b57c28e8b05cc6458/diff",
+                "MergedDir": "/var/lib/docker/overlay2/8a9a3f7ca58bac8a30e08bb88b70dd46a94399c32dae67bd3cc41dce2af6c54f/merged",
+                "UpperDir": "/var/lib/docker/overlay2/8a9a3f7ca58bac8a30e08bb88b70dd46a94399c32dae67bd3cc41dce2af6c54f/diff",
+                "WorkDir": "/var/lib/docker/overlay2/8a9a3f7ca58bac8a30e08bb88b70dd46a94399c32dae67bd3cc41dce2af6c54f/work"
+            },
+            "Name": "overlay2"
+        },
+        "RootFS": {
+            "Type": "layers",
+            "Layers": [
+                "sha256:629ca62fb7c791374ce57626d6b8b62c76378be091a0daf1a60d32700b49add7",
+                "sha256:d20127e4b6dc8a5cf76bf162a7f3f5b4bd7ac94819689c64527dc1ed33fff470",
+                "sha256:fa87c6a5e0456b113571f78e7b3d663f282b2effb6027f1ad1cfe1c3de915c6d",
+                "sha256:d289725a30b1c9afb60834d1c78f868ab2fd8fe77aebd9f7defe780cb81c41b6",
+                "sha256:9d2e5d6375828aa831bf72410ce980f7a95da59fa66a2ff75cbfef931a979801",
+                "sha256:6da9894889d37df6e2738daae3fa7add57cacafb464fcc1d64efe5d97537de29",
+                "sha256:956b66732d5cec133971b5436a01d4ba32dcd65782b3f204490c27f3fd4858f0"
+            ]
+        },
+        "Metadata": {
+            "LastTagTime": "2024-05-10T11:45:07.066326082Z"
+        }
+    }
+]
+```
+
+```sh
+❯ cat logs/log.txt 
+text1
+text2
+text3
+```
+
+```sh
+gsed -i 's/lab07/lab08/g' README.md
+nvim .travis.yml
+```
+
+```sh
+❯ git add Dockerfile 
+❯ git add .travis.yml 
+❯ git commit -m "adding Dockerfile" 
+[main 9827307] adding Dockerfile
+ 2 files changed, 23 insertions(+), 13 deletions(-)
+ create mode 100644 Dockerfile
+```
+
+```sh
 ❯ git push origin main
-Enumerating objects: 77, done.
-Counting objects: 100% (77/77), done.
+Enumerating objects: 97, done.
+Counting objects: 100% (97/97), done.
 Delta compression using up to 4 threads
-Compressing objects: 100% (44/44), done.
-Writing objects: 100% (77/77), 43.90 KiB | 43.90 MiB/s, done.
-Total 77 (delta 26), reused 64 (delta 24), pack-reused 0 (from 0)
-remote: Resolving deltas: 100% (26/26), done.
-To github.com:TheIIIrd/tp-lab07.git
+Compressing objects: 100% (54/54), done.
+Writing objects: 100% (97/97), 55.49 KiB | 27.75 MiB/s, done.
+Total 97 (delta 33), reused 92 (delta 32), pack-reused 0 (from 0)
+remote: Resolving deltas: 100% (33/33), done.
+To github.com:TheIIIrd/tp-lab08.git
  * [new branch]      main -> main
 ```
