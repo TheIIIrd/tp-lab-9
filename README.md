@@ -6,7 +6,7 @@ Study of application deployment and management automation systems using Docker a
 ## Tutorial
 
 ```sh
-export GITHUB_USERNAME=TheIIIrd
+❯ export GITHUB_USERNAME=TheIIIrd
 ```
 
 ```sh
